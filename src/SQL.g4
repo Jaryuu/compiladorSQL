@@ -3,6 +3,32 @@ grammar SQL;
 fragment LETTER: ( 'a'..'z' | 'A'..'Z') ;
 fragment DIGIT: '0'..'9' ;
 
+fragment A : [aA];
+fragment B : [bB];
+fragment C : [cC];
+fragment D : [dD];
+fragment E : [eE];
+fragment F : [fF];
+fragment G : [gG];
+fragment H : [hH];
+fragment I : [iI];
+fragment J : [jJ];
+fragment K : [kK];
+fragment L : [lL];
+fragment M : [mM];
+fragment N : [nN];
+fragment O : [oO];
+fragment P : [pP];
+fragment Q : [qQ];
+fragment R : [rR];
+fragment S : [sS];
+fragment T : [tT];
+fragment U : [uU];
+fragment V : [vV];
+fragment W : [wW];
+fragment X : [xX];
+fragment Y : [yY];
+fragment Z : [zZ];
 
 SPACES
 : [ \t\r\n\f]+ -> channel(HIDDEN)
@@ -25,163 +51,163 @@ CHAR: '\''(([a-zA-Z]|DIGIT|| '!' | '"' | '#' | '$' | '%' | '&' | '\'' | '(' | ')
 
 //keywords
 k_create
-:	'CREATE'
+:	C R E A T E
 ;
 
 k_database
-:	'DATABASE'
+:	D A T A B A S E
 ;
 
 k_databases
-:	'DATABASES'
+:	D A T A B A S E S 
 ;
 
 k_drop
-:	'DROP'
+:	D R O P
 ;
 
 k_use
-:	'USE'
+:	U S E
 ;
 
 k_show
-:	'SHOW'
+:	S H O W
 ;
 
 k_alter
-:	'ALTER'
+:	A L T E R
 ;
 
 k_rename
-:	'RENAME'
+:	R E N A M E
 ;
 
 k_to
-:	'TO'
+:	T O
 ;
 
 k_table
-:	'TABLE'
+:	T A B L E
 ;
 
 k_tables
-:	'TABLES'
+:	T A B L E S
 ;
 
 k_constraint
-:	'CONSTRAINT'
+:	C O N S T R A I N T
 ;
 
 k_column
-:	'COLUMN'
+:	C O L U M N
 ;
 
 k_columns
-:	'COLUMNS'
+:	C O L U M N S
 ;
 
 k_from
-:	'FROM'
+:	F R O M
 ;
 
 k_add
-:	'ADD'
+:	A D D
 ;
 
 k_select
-:	'SELECT'
+:	S E L E C T
 ;
 
 k_where
-: 	'WHERE'
+: 	W H E R E
 ;
 
 k_int
-:	'INT'
+:	I N T
 ;
 
 k_date
-:	'DATE'
+:	D A T E
 ;
 
 k_char
-:	'char'
+:	C H A R
 ;
 
 k_float
-: 	'FLOAT'
+: 	F L O A T
 ;
 
 k_primary
-:	'PRIMARY'
+:	P R I M A R Y
 ;
 
 k_check
-:	'CHECK'
+:	C H E C K
 ;
 
 k_references
-:	'REFERENCES'
+:	R E F E R E N C E S
 ;
 
 k_foreign
-:	'FOREIGN'
+:	F O R E I G N
 ;
 
 k_key
-: 	'KEY'
+: 	K E Y
 ;
 
 k_insert
-:	'INSERT'
+:	I N S E R T
 ;
 
 k_into
-:	'INTO'
+:	I N T O
 ;
 
 k_values
-:	'VALUES'
+:	V A L U E S
 ;
 
 k_order
-:	'ORDER'
+:	O R D E R
 ;
 
 k_set
-:	'SET'
+:	S E T
 ;
 
 k_update
-: 	'UPDATE'
+: 	U P D A  T E
 ;
 
 k_by
-:	'BY'
+:	B Y
 ;
 
 k_asc
-:	'ASC'
+:	A S C
 ;
 
 k_desc
-:	'DESC'
+:	D E S C
 ;
 
 k_and
-:	'AND'
+:	A N D
 ;
 
 k_or
-:	'OR'
+:	O R
 ;
 
 k_not
-:	'NOT'
+:	N O T
 ;
 
 k_delete
-:	'DELETE'
+:	D E L E T E
 ;
 
 todo
