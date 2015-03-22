@@ -51,6 +51,14 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public void setMensajes(ArrayList<String> mensajes) {
 		this.mensajes = mensajes;
 	}
+	
+	public String getNombreBD() {
+		return nombreBD;
+	}
+
+	public void setNombreBD(String nombreBD) {
+		this.nombreBD = nombreBD;
+	}
 
 	public String visitTodo(SQLParser.TodoContext ctx){
 		// Se crean los atributos
@@ -147,6 +155,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			tupla.add(databases.get(i));
 			data.add(tupla);
 		}
+		nombreBD = "Bases de Datos";
 		return "";
 	}
 

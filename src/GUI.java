@@ -1,11 +1,13 @@
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.text.DefaultCaret;
@@ -100,6 +102,7 @@ public class GUI extends JFrame {
 		textPane = new JTextPane();
 		Font font1 = new Font("Arial",Font.ROMAN_BASELINE,12);
 		textPane.setFont(font1);
+		textPane.requestFocus();
 		JScrollPane jsp = new JScrollPane(textPane);
 		
 		
@@ -177,8 +180,8 @@ public class GUI extends JFrame {
 					if (! (antlr4.getError() || antlr4.isErrorST() || antlr4.isbWarning()) ) {
 						
 						updateTable(antlr4);
-						txtAreaError.setText("PASS");
-						txtAreaError.setForeground(Color.GREEN);
+						txtAreaError.setText("Console: "+antlr4.getVisitor().mensajesToString());
+						txtAreaError.setForeground(Color.BLACK);
 					}
 				}
 				
@@ -190,7 +193,7 @@ public class GUI extends JFrame {
 		
 		
 		txtAreaError = new JTextArea();	
-		txtAreaError.setText("Console");
+		txtAreaError.setText("Console:");
 		txtAreaError.setEditable(false);
 		Font font = new Font("Verdana", Font.BOLD, 14);
 		txtAreaError.setFont(font);
@@ -203,7 +206,7 @@ public class GUI extends JFrame {
 				
 		DefaultTableModel model = new DefaultTableModel();
 		tableQuery = new JTable(model);
-		tablePane = new JPanel();
+		tablePane = new JPanel(new GridLayout());		
 		tablePane.add(new JScrollPane(tableQuery));
 		tabbedPane.addTab("Query result", null, tablePane, null);
 
@@ -238,15 +241,28 @@ public class GUI extends JFrame {
 				 }
 				 
 			 }
-			 
+			tablePane.removeAll();
+			tableQuery = new JTable(data,columnas);
+			tableQuery.setEnabled(false);
+			tableQuery.setName(antlr4.getVisitor().getNombreBD());
+			tablePane.add(new JScrollPane(tableQuery));
+			tablePane.setBorder (BorderFactory.createTitledBorder (BorderFactory.createEmptyBorder (),
+	                tableQuery.getName(),
+	                TitledBorder.CENTER,
+	                TitledBorder.TOP));
 		}
 		else{
 			data = new Object[0][0];
+			tablePane.removeAll();
+			tableQuery = new JTable(data,columnas);
+			tableQuery.setEnabled(false);
+			tableQuery.setName("");
+			tablePane.add(new JScrollPane(tableQuery));
+			tablePane.setBorder (BorderFactory.createTitledBorder (BorderFactory.createEmptyBorder (),
+	                tableQuery.getName(),
+	                TitledBorder.CENTER,
+	                TitledBorder.TOP));
 		}
-		tablePane.removeAll();
-		tableQuery = new JTable(data,columnas);
-		tablePane.add(new JScrollPane(tableQuery));
-		
 	}
 
 }
