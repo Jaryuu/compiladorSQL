@@ -7,11 +7,14 @@ import java.util.*;
 import javax.xml.soap.Node;
 
 import org.w3c.dom.NodeList;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;
+
 import java.io.File;
 
 
@@ -22,8 +25,25 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	private XMLFile archivoXML;
 	private String pathBase, nombreBD;
 	private boolean exitoCarpeta;
-	String contenido;
+	String contenido;	
+	ArrayList<ArrayList<String>> data;
 	
+	public ArrayList<String> getColumnas() {
+		return columnas;
+	}
+
+	public void setColumnas(ArrayList<String> columnas) {
+		this.columnas = columnas;
+	}
+
+	public ArrayList<ArrayList<String>> getData() {
+		return data;
+	}
+
+	public void setData(ArrayList<ArrayList<String>> data) {
+		this.data = data;
+	}
+
 	public ArrayList<String> getMensajes() {
 		return mensajes;
 	}
@@ -37,6 +57,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		mensajes = new ArrayList<String>();
 		columnas = new ArrayList<String>();
 		datos = new ArrayList<String>();
+		data = new ArrayList<ArrayList<String>>();
 		boolean success = crearCarpeta("BaseDeDatos");
 		pathBase = "BaseDeDatos\\";		
 		if (!success) {
@@ -86,20 +107,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		return "";
 	}
 	
-	public static void deleteFolder(File folder) {
-	    File[] files = folder.listFiles();
-	    if(files!=null) { //some JVMs return null for empty dirs
-	        for(File f: files) {
-	            if(f.isDirectory()) {
-	                deleteFolder(f);
-	            } else {
-	                f.delete();
-	            }
-	        }
-	    }
-	    folder.delete();
-	    
-	}
+	
 	
 	public String visitAlterDB(SQLParser.AlterDBContext ctx){
 		String nombreViejo = ctx.ID(0).getText();
@@ -125,9 +133,53 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		return "";
 	}
 	
+	
+	
+	
+	@Override
+	public String visitShowDB(SQLParser.ShowDBContext ctx) {
+		ArrayList<String> databases = archivoXML.showDatabases();
+		columnas.clear();
+		columnas.add("Database Name");
+		data.clear();
+		for(int i=0;i<databases.size();i++){
+			ArrayList<String> tupla = new ArrayList<String>();
+			tupla.add(databases.get(i));
+			data.add(tupla);
+		}
+		return "";
+	}
+
+	@Override
+	public String visitUseDB(SQLParser.UseDBContext ctx) {
+		nombreBD = ctx.ID().getText();
+		File folder = new File(pathBase+"\\"+nombreBD);
+		if (!folder.exists()){
+			System.out.println(folder.getAbsolutePath());
+			mensajes.add("No existe la base de datos <"+nombreBD+">");
+		}		
+		return "";
+	}
+
 	public boolean crearCarpeta(String nombre){
 		File f = new File(nombre);		
 		return f.mkdir();
+	}
+	
+	
+	public static void deleteFolder(File folder) {
+	    File[] files = folder.listFiles();
+	    if(files!=null) { //some JVMs return null for empty dirs
+	        for(File f: files) {
+	            if(f.isDirectory()) {
+	                deleteFolder(f);
+	            } else {
+	                f.delete();
+	            }
+	        }
+	    }
+	    folder.delete();
+	    
 	}
 	
 	public String mensajesToString(){

@@ -145,4 +145,18 @@ public class XMLFile {
 		pathReal = path+"\\"+nuevo+".XML";
 		archivo.renameTo(new File(pathReal));
 	}
+	
+	public ArrayList<String> showDatabases(){
+		NodeList list = rootElement.getElementsByTagName("BaseDeDatos");
+		ArrayList<String> databases = new ArrayList<String>();
+		for (int i = 0; i < list.getLength(); i++) {
+			org.w3c.dom.Node nodo =  list.item(i);
+			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+	           Element eElement = (Element) nodo;
+	           databases.add(eElement.getElementsByTagName("nombre").item(0).getTextContent());
+			}
+		}
+		return databases;
+	}
+	
 }

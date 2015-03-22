@@ -6,6 +6,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import javax.swing.text.DefaultCaret;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
@@ -41,6 +43,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import javax.swing.JLabel;
@@ -49,6 +52,9 @@ import javax.swing.JLabel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Element;
+import javax.swing.JTable;
+
+import java.awt.Scrollbar;
 //
 
 public class GUI extends JFrame {
@@ -63,9 +69,12 @@ public class GUI extends JFrame {
 	private ANTLR antlr4;
 	private JTextArea txtAreaError;	
 	private JScrollPane jsp3;
+	private JPanel tablePane;
+	
 	
 	//
 	private JTextArea lines;
+	private JTable tableQuery;
 	//
 
 	public GUI() {		
@@ -166,6 +175,8 @@ public class GUI extends JFrame {
 					txtAreaError.setForeground(Color.RED);
 				}else {
 					if (! (antlr4.getError() || antlr4.isErrorST() || antlr4.isbWarning()) ) {
+						
+						updateTable(antlr4);
 						txtAreaError.setText("PASS");
 						txtAreaError.setForeground(Color.GREEN);
 					}
@@ -188,6 +199,13 @@ public class GUI extends JFrame {
 		jsp3.setPreferredSize(new Dimension(panel.getWidth(), 80));
 		jsp3.setBorder(javax.swing.BorderFactory.createEmptyBorder());
 		panel.add(jsp3, BorderLayout.SOUTH);
+		
+				
+		DefaultTableModel model = new DefaultTableModel();
+		tableQuery = new JTable(model);
+		tablePane = new JPanel();
+		tablePane.add(new JScrollPane(tableQuery));
+		tabbedPane.addTab("Query result", null, tablePane, null);
 
 	}
 
@@ -203,6 +221,32 @@ public class GUI extends JFrame {
 	public String readFile(String path, Charset encoding) throws IOException {
 	  byte[] encoded = Files.readAllBytes(Paths.get(path));
 	  return new String(encoded, encoding);
+	}
+	
+	
+	public void updateTable(ANTLR antrl4){
+		
+		//Actualizar tabla
+		String[] columnas = antlr4.getVisitor().getColumnas().toArray(new String[antlr4.getVisitor().getColumnas().size()]);
+		Object data[][];
+		if (antlr4.getVisitor().getData().size()>0){
+			 data = new Object[antlr4.getVisitor().getData().size()][antlr4.getVisitor().getData().get(0).size()];
+			 for (int i=0;i<antlr4.getVisitor().getData().size();i++){
+				 for (int j=0;j<antlr4.getVisitor().getData().get(i).size();j++){
+					 data[i][j] = antlr4.getVisitor().getData().get(i).get(j).toString();
+					 
+				 }
+				 
+			 }
+			 
+		}
+		else{
+			data = new Object[0][0];
+		}
+		tablePane.removeAll();
+		tableQuery = new JTable(data,columnas);
+		tablePane.add(new JScrollPane(tableQuery));
+		
 	}
 
 }

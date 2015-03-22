@@ -195,7 +195,7 @@ database
 :	K_CREATE K_DATABASE ID													# createDB
 |	K_DROP  K_DATABASE  ID													# dropDB
 |	K_USE  K_DATABASE  ID													# useDB
-|	K_SHOW  K_DATABASES ID													# showDB
+|	K_SHOW  K_DATABASES														# showDB
 |	K_ALTER  K_DATABASE  ID  K_RENAME  K_TO  ID								# alterDB
 |	insert																	# insertion
 |	delete																	# deleteTB
