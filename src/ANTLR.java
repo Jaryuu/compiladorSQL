@@ -26,7 +26,7 @@ public class ANTLR {
 	private TreeViewer viewr;
 	private boolean error, errorST, bWarning;
 	private VerboseListener errorListener;
-	//private EvalVisitor visitor;
+	private DBVisitor visitor;
 
 	
 	public ANTLR(String is){		
@@ -39,25 +39,15 @@ public class ANTLR {
 		errorListener = new VerboseListener();
 		parser.addErrorListener(errorListener);
 		tree = parser.todo(); // parse; start a program
-		//visitor = new EvalVisitor();		
+		visitor = new DBVisitor();		
 		if (parser.getNumberOfSyntaxErrors()>0){
 			error = true;
 			System.out.println("\n"+parser.getNumberOfSyntaxErrors());
 			System.out.println(errorListener.getError());
 		}else{			
 			error = false;
-//			visitor.visit(tree);
-//			if (visitor.getErrores().size()>0){
-//				errorST = true;
-//			}else{
-//				errorST = false;
-//			}
-//			if (visitor.getWarnings().size()>0){
-//				bWarning = true;
-//			}else{
-//				bWarning = false;
-//			}
-//			//System.out.println(visitor.getTablaSimbolos().toString());
+			visitor.visit(tree);
+			// JULIO AHI ESTA TU COMENTARIO
 		}
 		
 		
@@ -97,6 +87,12 @@ public class ANTLR {
 	
 	public void setbWarning(boolean bWarning) {
 		this.bWarning = bWarning;
+	}
+	public DBVisitor getVisitor() {
+		return visitor;
+	}
+	public void setVisitor(DBVisitor visitor) {
+		this.visitor = visitor;
 	}
 	
 }
