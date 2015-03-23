@@ -83,9 +83,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 	
 	public String visitCreateDB(SQLParser.CreateDBContext ctx){
-		String nombreBD = ctx.ID().getText();		
-		exitoCarpeta = crearCarpeta(pathBase+nombreBD);
-		archivoXML = new XMLFile(nombreBD, pathBase+"\\"+nombreBD+"\\");
+		String nuevaBD = ctx.ID().getText();		
+		exitoCarpeta = crearCarpeta(pathBase+nuevaBD);
+		archivoXML = new XMLFile(nuevaBD, pathBase+"\\"+nuevaBD+"\\");
 		// Si se crea la carpeta es que no existe la base de datos
 		if (exitoCarpeta){
 			// Se agrega a la metadata
@@ -94,25 +94,25 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			columnas.add("nombre");
 			columnas.add("cantidadTablas");
 			datos.clear();
-			datos.add(nombreBD);
+			datos.add(nuevaBD);
 			datos.add("0");
 			System.out.println(datos);
 			archivoXML.add("BaseDeDatos", columnas, datos);
 		}else{
-			mensajes.add("Ya existe la base de datos <"+nombreBD+">");
+			mensajes.add("Ya existe la base de datos <"+nuevaBD+">");
 		}
 		return "";
 	}
 	
 	public String visitDropDB(SQLParser.DropDBContext ctx){
-		nombreBD = ctx.ID().getText();
-		File folder = new File(pathBase+"\\"+nombreBD);
+		String borrarBD = ctx.ID().getText();
+		File folder = new File(pathBase+"\\"+borrarBD);
 		if (folder.exists()){
 			deleteFolder(folder);
-			borrarBD(nombreBD);
+			borrarBD(borrarBD);
 		}else{
 			System.out.println(folder.getAbsolutePath());
-			mensajes.add("No existe la base de datos <"+nombreBD+">");
+			mensajes.add("No existe la base de datos <"+borrarBD+">");
 		}		
 		return "";
 	}
