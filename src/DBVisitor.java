@@ -24,7 +24,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	private ArrayList<String> mensajes, columnas, datos;
 	private XMLFile archivoXML;
 	private String pathBase;
-	private String nombreBD = "";
+	private String nombreBD = "", showNombre;
 	private boolean exitoCarpeta;
 	String contenido;	
 	ArrayList<ArrayList<String>> data;
@@ -60,9 +60,18 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public void setNombreBD(String nombreBD) {
 		this.nombreBD = nombreBD;
 	}
+	
+	public String getShowNombre() {
+		return showNombre;
+	}
+
+	public void setShowNombre(String showNombre) {
+		this.showNombre = showNombre;
+	}
 
 	public String visitTodo(SQLParser.TodoContext ctx){
 		// Se crean los atributos
+		showNombre = "";
 		mensajes = new ArrayList<String>();
 		columnas = new ArrayList<String>();
 		datos = new ArrayList<String>();
@@ -151,13 +160,14 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 		ArrayList<String> databases = archivoXML.showDatabases();
 		columnas.clear();
-		columnas.add("Database Name");
+		columnas.add("Database Name");		
 		data.clear();
 		for(int i=0;i<databases.size();i++){
 			ArrayList<String> tupla = new ArrayList<String>();
 			tupla.add(databases.get(i));
 			data.add(tupla);
 		}
+		showNombre = "Databases";
 		return "";
 	}
 
@@ -183,6 +193,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			mensajes.add("No se ha especificado una base de datos a utilizar");
 		}
 		else{		
+			showNombre = nombreBD+": Tables";
 			columnas.add("NombreTabla");
 			columnas.add("CantRegistros");
 			archivoXML = new XMLFile(nombreBD, pathBase+"\\"+nombreBD+"\\");
