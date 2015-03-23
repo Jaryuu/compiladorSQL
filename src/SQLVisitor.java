@@ -11,24 +11,44 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
  */
 public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	/**
+	 * Visit a parse tree produced by the {@code showTB}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitShowTB(@NotNull SQLParser.ShowTBContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code addColumnTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAddColumnTB(@NotNull SQLParser.AddColumnTBContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SQLParser#logicExpOr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitLogicExpOr(@NotNull SQLParser.LogicExpOrContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code deleteTB}
-	 * labeled alternative in {@link SQLParser#database}.
+	 * Visit a parse tree produced by the {@code dropTB}
+	 * labeled alternative in {@link SQLParser#table}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDeleteTB(@NotNull SQLParser.DeleteTBContext ctx);
+	T visitDropTB(@NotNull SQLParser.DropTBContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#tipo}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitTipo(@NotNull SQLParser.TipoContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#data}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitData(@NotNull SQLParser.DataContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#relationalExpEq}.
 	 * @param ctx the parse tree
@@ -47,13 +67,6 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitUpdate(@NotNull SQLParser.UpdateContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code queryDB}
-	 * labeled alternative in {@link SQLParser#database}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitQueryDB(@NotNull SQLParser.QueryDBContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#entero}.
 	 * @param ctx the parse tree
@@ -153,11 +166,12 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitRelationalExpGL(@NotNull SQLParser.RelationalExpGLContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SQLParser#table}.
+	 * Visit a parse tree produced by the {@code alterTB}
+	 * labeled alternative in {@link SQLParser#table}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitTable(@NotNull SQLParser.TableContext ctx);
+	T visitAlterTB(@NotNull SQLParser.AlterTBContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code useDB}
 	 * labeled alternative in {@link SQLParser#database}.
@@ -166,17 +180,45 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitUseDB(@NotNull SQLParser.UseDBContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code dropColumnTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDropColumnTB(@NotNull SQLParser.DropColumnTBContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SQLParser#query}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitQuery(@NotNull SQLParser.QueryContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code createTB}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCreateTB(@NotNull SQLParser.CreateTBContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code dropConstraintTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDropConstraintTB(@NotNull SQLParser.DropConstraintTBContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SQLParser#condicion}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitCondicion(@NotNull SQLParser.CondicionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code showColums}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitShowColums(@NotNull SQLParser.ShowColumsContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#todo}.
 	 * @param ctx the parse tree
@@ -197,11 +239,12 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDropDB(@NotNull SQLParser.DropDBContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SQLParser#tableAction}.
+	 * Visit a parse tree produced by the {@code addConstraintTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitTableAction(@NotNull SQLParser.TableActionContext ctx);
+	T visitAddConstraintTB(@NotNull SQLParser.AddConstraintTBContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#unifactor}.
 	 * @param ctx the parse tree
@@ -215,18 +258,24 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLogicExpAnd(@NotNull SQLParser.LogicExpAndContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SQLParser#casitodo}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCasitodo(@NotNull SQLParser.CasitodoContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code renameTB}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRenameTB(@NotNull SQLParser.RenameTBContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SQLParser#logicExpNot}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitLogicExpNot(@NotNull SQLParser.LogicExpNotContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code insertion}
-	 * labeled alternative in {@link SQLParser#database}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitInsertion(@NotNull SQLParser.InsertionContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#constraint}.
 	 * @param ctx the parse tree

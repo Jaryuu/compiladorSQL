@@ -187,8 +187,13 @@ CHAR: '\''((LETTER|DIGIT|| '!' | '"' | '#' | '$' | '%' | '&' | '\'' | '(' | ')' 
 
 
 todo
+: (casitodo)+
+;
+
+casitodo
 : 	database
 | 	table
+|	data
 ;
 
 database
@@ -197,25 +202,28 @@ database
 |	K_USE  K_DATABASE  ID													# useDB
 |	K_SHOW  K_DATABASES														# showDB
 |	K_ALTER  K_DATABASE  ID  K_RENAME  K_TO  ID								# alterDB
-|	insert																	# insertion
-|	delete																	# deleteTB
-|	query																	# queryDB
+;
+
+data
+:	insert																	
+|	delete																	
+|	query																	
 ;
 
 table
-:	K_CREATE  K_TABLE  ID ('(' (ID tipo (K_CONSTRAINT constraint)? )* ')')?
-|	K_ALTER  K_TABLE  ID   (tableAction)*
-|	K_ALTER  K_TABLE  ID  K_RENAME  K_TO  ID 
-|	K_DROP  K_TABLE  ID
-|	K_SHOW  K_TABLES
-| 	K_SHOW  K_COLUMNS  K_FROM  ID 
+:	K_CREATE  K_TABLE  ID ('(' (ID tipo (K_CONSTRAINT constraint)? )* ')')?	#createTB
+|	K_ALTER  K_TABLE  ID   (tableAction)*									#alterTB
+|	K_ALTER  K_TABLE  ID  K_RENAME  K_TO  ID 								#renameTB
+|	K_DROP  K_TABLE  ID														#dropTB
+|	K_SHOW  K_TABLES														#showTB
+| 	K_SHOW  K_COLUMNS  K_FROM  ID 											#showColums
 ;
 
 tableAction
-:	K_ADD  K_COLUMN  ID tipo (K_CONSTRAINT (constraint)* )? 
-|	K_ADD  K_CONSTRAINT constraint
-|	K_DROP  K_COLUMN  ID
-|	K_DROP  K_CONSTRAINT  ID
+:	K_ADD  K_COLUMN  ID tipo (K_CONSTRAINT (constraint)* )? 				#addColumnTB
+|	K_ADD  K_CONSTRAINT constraint											#addConstraintTB
+|	K_DROP  K_COLUMN  ID													#dropColumnTB
+|	K_DROP  K_CONSTRAINT  ID												#dropConstraintTB
 ;
 
 tipo
@@ -340,7 +348,7 @@ delete
 ;
 
 query
-:	K_SELECT ('*' | (ID (',' ID)*))  K_FROM  ID  K_WHERE  condicion K_ORDER  K_BY (expresion (K_ASC | K_DESC) (',' expresion (K_ASC | K_DESC))*)* 
+:	K_SELECT ('*' | (ID (',' ID)*))  K_FROM  ID  (K_WHERE  condicion K_ORDER  K_BY (expresion (K_ASC | K_DESC) (',' expresion (K_ASC | K_DESC))*)*)? 
 ;
 
 expresion

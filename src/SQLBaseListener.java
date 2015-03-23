@@ -16,6 +16,30 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterShowTB(@NotNull SQLParser.ShowTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitShowTB(@NotNull SQLParser.ShowTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAddColumnTB(@NotNull SQLParser.AddColumnTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAddColumnTB(@NotNull SQLParser.AddColumnTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterLogicExpOr(@NotNull SQLParser.LogicExpOrContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -28,13 +52,13 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDeleteTB(@NotNull SQLParser.DeleteTBContext ctx) { }
+	@Override public void enterDropTB(@NotNull SQLParser.DropTBContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDeleteTB(@NotNull SQLParser.DeleteTBContext ctx) { }
+	@Override public void exitDropTB(@NotNull SQLParser.DropTBContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -47,6 +71,18 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitTipo(@NotNull SQLParser.TipoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterData(@NotNull SQLParser.DataContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitData(@NotNull SQLParser.DataContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -83,18 +119,6 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitUpdate(@NotNull SQLParser.UpdateContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterQueryDB(@NotNull SQLParser.QueryDBContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitQueryDB(@NotNull SQLParser.QueryDBContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -292,13 +316,13 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTable(@NotNull SQLParser.TableContext ctx) { }
+	@Override public void enterAlterTB(@NotNull SQLParser.AlterTBContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitTable(@NotNull SQLParser.TableContext ctx) { }
+	@Override public void exitAlterTB(@NotNull SQLParser.AlterTBContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -316,6 +340,18 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterDropColumnTB(@NotNull SQLParser.DropColumnTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDropColumnTB(@NotNull SQLParser.DropColumnTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterQuery(@NotNull SQLParser.QueryContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -328,6 +364,30 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCreateTB(@NotNull SQLParser.CreateTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCreateTB(@NotNull SQLParser.CreateTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterDropConstraintTB(@NotNull SQLParser.DropConstraintTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDropConstraintTB(@NotNull SQLParser.DropConstraintTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterCondicion(@NotNull SQLParser.CondicionContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -335,6 +395,18 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitCondicion(@NotNull SQLParser.CondicionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterShowColums(@NotNull SQLParser.ShowColumsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitShowColums(@NotNull SQLParser.ShowColumsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -376,13 +448,13 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTableAction(@NotNull SQLParser.TableActionContext ctx) { }
+	@Override public void enterAddConstraintTB(@NotNull SQLParser.AddConstraintTBContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitTableAction(@NotNull SQLParser.TableActionContext ctx) { }
+	@Override public void exitAddConstraintTB(@NotNull SQLParser.AddConstraintTBContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -412,6 +484,30 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCasitodo(@NotNull SQLParser.CasitodoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCasitodo(@NotNull SQLParser.CasitodoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterRenameTB(@NotNull SQLParser.RenameTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRenameTB(@NotNull SQLParser.RenameTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterLogicExpNot(@NotNull SQLParser.LogicExpNotContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -419,18 +515,6 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitLogicExpNot(@NotNull SQLParser.LogicExpNotContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterInsertion(@NotNull SQLParser.InsertionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitInsertion(@NotNull SQLParser.InsertionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

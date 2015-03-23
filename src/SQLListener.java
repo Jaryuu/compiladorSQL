@@ -8,6 +8,30 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface SQLListener extends ParseTreeListener {
 	/**
+	 * Enter a parse tree produced by the {@code showTB}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 */
+	void enterShowTB(@NotNull SQLParser.ShowTBContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code showTB}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 */
+	void exitShowTB(@NotNull SQLParser.ShowTBContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code addColumnTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
+	 * @param ctx the parse tree
+	 */
+	void enterAddColumnTB(@NotNull SQLParser.AddColumnTBContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code addColumnTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
+	 * @param ctx the parse tree
+	 */
+	void exitAddColumnTB(@NotNull SQLParser.AddColumnTBContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SQLParser#logicExpOr}.
 	 * @param ctx the parse tree
 	 */
@@ -18,17 +42,17 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitLogicExpOr(@NotNull SQLParser.LogicExpOrContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code deleteTB}
-	 * labeled alternative in {@link SQLParser#database}.
+	 * Enter a parse tree produced by the {@code dropTB}
+	 * labeled alternative in {@link SQLParser#table}.
 	 * @param ctx the parse tree
 	 */
-	void enterDeleteTB(@NotNull SQLParser.DeleteTBContext ctx);
+	void enterDropTB(@NotNull SQLParser.DropTBContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code deleteTB}
-	 * labeled alternative in {@link SQLParser#database}.
+	 * Exit a parse tree produced by the {@code dropTB}
+	 * labeled alternative in {@link SQLParser#table}.
 	 * @param ctx the parse tree
 	 */
-	void exitDeleteTB(@NotNull SQLParser.DeleteTBContext ctx);
+	void exitDropTB(@NotNull SQLParser.DropTBContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SQLParser#tipo}.
 	 * @param ctx the parse tree
@@ -39,6 +63,16 @@ public interface SQLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitTipo(@NotNull SQLParser.TipoContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SQLParser#data}.
+	 * @param ctx the parse tree
+	 */
+	void enterData(@NotNull SQLParser.DataContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#data}.
+	 * @param ctx the parse tree
+	 */
+	void exitData(@NotNull SQLParser.DataContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SQLParser#relationalExpEq}.
 	 * @param ctx the parse tree
@@ -69,18 +103,6 @@ public interface SQLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitUpdate(@NotNull SQLParser.UpdateContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code queryDB}
-	 * labeled alternative in {@link SQLParser#database}.
-	 * @param ctx the parse tree
-	 */
-	void enterQueryDB(@NotNull SQLParser.QueryDBContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code queryDB}
-	 * labeled alternative in {@link SQLParser#database}.
-	 * @param ctx the parse tree
-	 */
-	void exitQueryDB(@NotNull SQLParser.QueryDBContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SQLParser#entero}.
 	 * @param ctx the parse tree
@@ -246,15 +268,17 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitRelationalExpGL(@NotNull SQLParser.RelationalExpGLContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SQLParser#table}.
+	 * Enter a parse tree produced by the {@code alterTB}
+	 * labeled alternative in {@link SQLParser#table}.
 	 * @param ctx the parse tree
 	 */
-	void enterTable(@NotNull SQLParser.TableContext ctx);
+	void enterAlterTB(@NotNull SQLParser.AlterTBContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SQLParser#table}.
+	 * Exit a parse tree produced by the {@code alterTB}
+	 * labeled alternative in {@link SQLParser#table}.
 	 * @param ctx the parse tree
 	 */
-	void exitTable(@NotNull SQLParser.TableContext ctx);
+	void exitAlterTB(@NotNull SQLParser.AlterTBContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code useDB}
 	 * labeled alternative in {@link SQLParser#database}.
@@ -268,6 +292,18 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitUseDB(@NotNull SQLParser.UseDBContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code dropColumnTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
+	 * @param ctx the parse tree
+	 */
+	void enterDropColumnTB(@NotNull SQLParser.DropColumnTBContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code dropColumnTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
+	 * @param ctx the parse tree
+	 */
+	void exitDropColumnTB(@NotNull SQLParser.DropColumnTBContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SQLParser#query}.
 	 * @param ctx the parse tree
 	 */
@@ -278,6 +314,30 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitQuery(@NotNull SQLParser.QueryContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code createTB}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 */
+	void enterCreateTB(@NotNull SQLParser.CreateTBContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code createTB}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 */
+	void exitCreateTB(@NotNull SQLParser.CreateTBContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code dropConstraintTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
+	 * @param ctx the parse tree
+	 */
+	void enterDropConstraintTB(@NotNull SQLParser.DropConstraintTBContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code dropConstraintTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
+	 * @param ctx the parse tree
+	 */
+	void exitDropConstraintTB(@NotNull SQLParser.DropConstraintTBContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SQLParser#condicion}.
 	 * @param ctx the parse tree
 	 */
@@ -287,6 +347,18 @@ public interface SQLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCondicion(@NotNull SQLParser.CondicionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code showColums}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 */
+	void enterShowColums(@NotNull SQLParser.ShowColumsContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code showColums}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 */
+	void exitShowColums(@NotNull SQLParser.ShowColumsContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SQLParser#todo}.
 	 * @param ctx the parse tree
@@ -320,15 +392,17 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitDropDB(@NotNull SQLParser.DropDBContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SQLParser#tableAction}.
+	 * Enter a parse tree produced by the {@code addConstraintTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
 	 * @param ctx the parse tree
 	 */
-	void enterTableAction(@NotNull SQLParser.TableActionContext ctx);
+	void enterAddConstraintTB(@NotNull SQLParser.AddConstraintTBContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SQLParser#tableAction}.
+	 * Exit a parse tree produced by the {@code addConstraintTB}
+	 * labeled alternative in {@link SQLParser#tableAction}.
 	 * @param ctx the parse tree
 	 */
-	void exitTableAction(@NotNull SQLParser.TableActionContext ctx);
+	void exitAddConstraintTB(@NotNull SQLParser.AddConstraintTBContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SQLParser#unifactor}.
 	 * @param ctx the parse tree
@@ -350,6 +424,28 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitLogicExpAnd(@NotNull SQLParser.LogicExpAndContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SQLParser#casitodo}.
+	 * @param ctx the parse tree
+	 */
+	void enterCasitodo(@NotNull SQLParser.CasitodoContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#casitodo}.
+	 * @param ctx the parse tree
+	 */
+	void exitCasitodo(@NotNull SQLParser.CasitodoContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code renameTB}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 */
+	void enterRenameTB(@NotNull SQLParser.RenameTBContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code renameTB}
+	 * labeled alternative in {@link SQLParser#table}.
+	 * @param ctx the parse tree
+	 */
+	void exitRenameTB(@NotNull SQLParser.RenameTBContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SQLParser#logicExpNot}.
 	 * @param ctx the parse tree
 	 */
@@ -359,18 +455,6 @@ public interface SQLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitLogicExpNot(@NotNull SQLParser.LogicExpNotContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code insertion}
-	 * labeled alternative in {@link SQLParser#database}.
-	 * @param ctx the parse tree
-	 */
-	void enterInsertion(@NotNull SQLParser.InsertionContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code insertion}
-	 * labeled alternative in {@link SQLParser#database}.
-	 * @param ctx the parse tree
-	 */
-	void exitInsertion(@NotNull SQLParser.InsertionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SQLParser#constraint}.
 	 * @param ctx the parse tree

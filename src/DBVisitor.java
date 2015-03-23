@@ -23,7 +23,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	
 	private ArrayList<String> mensajes, columnas, datos;
 	private XMLFile archivoXML;
-	private String pathBase, nombreBD;
+	private String pathBase;
+	private String nombreBD = "";
 	private boolean exitoCarpeta;
 	String contenido;	
 	ArrayList<ArrayList<String>> data;
@@ -95,6 +96,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			datos.clear();
 			datos.add(nombreBD);
 			datos.add("0");
+			System.out.println(datos);
 			archivoXML.add("BaseDeDatos", columnas, datos);
 		}else{
 			mensajes.add("Ya existe la base de datos <"+nombreBD+">");
@@ -146,6 +148,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	
 	@Override
 	public String visitShowDB(SQLParser.ShowDBContext ctx) {
+		archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 		ArrayList<String> databases = archivoXML.showDatabases();
 		columnas.clear();
 		columnas.add("Database Name");
@@ -155,7 +158,6 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			tupla.add(databases.get(i));
 			data.add(tupla);
 		}
-		nombreBD = "Bases de Datos";
 		return "";
 	}
 
@@ -164,9 +166,48 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		nombreBD = ctx.ID().getText();
 		File folder = new File(pathBase+"\\"+nombreBD);
 		if (!folder.exists()){
+			nombreBD = "";
 			System.out.println(folder.getAbsolutePath());
 			mensajes.add("No existe la base de datos <"+nombreBD+">");
 		}		
+		return "";
+	}
+	
+	
+	@Override
+	public String visitShowTB(SQLParser.ShowTBContext ctx) {
+		data.clear();
+		columnas.clear();
+		datos.clear();
+		if(nombreBD.equals("")){
+			mensajes.add("No se ha especificado una base de datos a utilizar");
+		}
+		else{		
+			columnas.add("NombreTabla");
+			columnas.add("CantRegistros");
+			archivoXML = new XMLFile(nombreBD, pathBase+"\\"+nombreBD+"\\");
+			NodeList list = archivoXML.getRootElement().getElementsByTagName("Tabla");
+			org.w3c.dom.Node nodo;
+			ArrayList<String> nuevoDato;
+			for (int i = 0; i < list.getLength(); i++) {
+				nodo =  list.item(i);
+				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+					Element eElement = (Element) nodo;
+					datos.add(eElement.getElementsByTagName("nombreTabla").item(0).getTextContent());
+					datos.add(eElement.getElementsByTagName("cantRegistros").item(0).getTextContent());
+					
+					//Por que no solo agregar datos a data? because f u that's why (y porque data se vacia)
+					ArrayList<String> datosCopia = new ArrayList<String>();
+					for (int j=0;j<datos.size();j++){
+						datosCopia.add(datos.get(j));
+					}
+					data.add(datosCopia);
+					
+					datos.clear();
+				}
+			}
+			
+		}
 		return "";
 	}
 

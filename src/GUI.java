@@ -69,6 +69,8 @@ public class GUI extends JFrame {
 	private JButton btnSave;
 	private JButton btnCompile;
 	private ANTLR antlr4;
+	private String nombreDB;
+	
 	private JTextArea txtAreaError;	
 	private JScrollPane jsp3;
 	private JPanel tablePane;
@@ -79,6 +81,14 @@ public class GUI extends JFrame {
 	private JTable tableQuery;
 	//
 
+	public String getNombreDB() {
+		return nombreDB;
+	}
+
+	public void setNombreDB(String nombreDB) {
+		this.nombreDB = nombreDB;
+	}
+	
 	public GUI() {		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 628, 567);
@@ -171,7 +181,20 @@ public class GUI extends JFrame {
 		btnCompile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				panel_1.removeAll();
-				antlr4 = new ANTLR(textPane.getText());				
+				
+				//Verificar que no es la primera vez que se ejecuta
+				if(antlr4!=null){
+					nombreDB = antlr4.getNombreDB();
+				}
+				
+				antlr4 = new ANTLR(textPane.getText());
+				
+				//Settear el nombre de la DB que se está usando
+				if(nombreDB!=null){
+					antlr4.setNombreDB(nombreDB);
+				}
+				antlr4.visitTree();
+				
 				antlr4.createGUITree();
 				if (antlr4.getError()){
 					txtAreaError.setText("Error:\n" + antlr4.getErrorListener().getError());
@@ -237,10 +260,10 @@ public class GUI extends JFrame {
 			 for (int i=0;i<antlr4.getVisitor().getData().size();i++){
 				 for (int j=0;j<antlr4.getVisitor().getData().get(i).size();j++){
 					 data[i][j] = antlr4.getVisitor().getData().get(i).get(j).toString();
-					 
 				 }
 				 
 			 }
+			 
 			tablePane.removeAll();
 			tableQuery = new JTable(data,columnas);
 			tableQuery.setEnabled(false);
@@ -254,7 +277,7 @@ public class GUI extends JFrame {
 		else{
 			data = new Object[0][0];
 			tablePane.removeAll();
-			tableQuery = new JTable(data,columnas);
+			tableQuery = new JTable();
 			tableQuery.setEnabled(false);
 			tableQuery.setName("");
 			tablePane.add(new JScrollPane(tableQuery));

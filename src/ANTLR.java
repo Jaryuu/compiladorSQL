@@ -27,6 +27,7 @@ public class ANTLR {
 	private boolean error, errorST, bWarning;
 	private VerboseListener errorListener;
 	private DBVisitor visitor;
+	private String nombreDB;
 
 	
 	public ANTLR(String is){		
@@ -39,7 +40,15 @@ public class ANTLR {
 		errorListener = new VerboseListener();
 		parser.addErrorListener(errorListener);
 		tree = parser.todo(); // parse; start a program
-		visitor = new DBVisitor();		
+		visitor = new DBVisitor();
+	}
+	
+	
+	public void visitTree(){
+		if(nombreDB!=null){
+			visitor.setNombreBD(nombreDB);
+		}
+		
 		if (parser.getNumberOfSyntaxErrors()>0){
 			error = true;
 			System.out.println("\n"+parser.getNumberOfSyntaxErrors());
@@ -47,11 +56,12 @@ public class ANTLR {
 		}else{			
 			error = false;
 			visitor.visit(tree);
-			// JULIO MODIFIQUE TU COMENTARIO JIJI
+			nombreDB=visitor.getNombreBD();
 		}
 		
-		
 	}
+	
+	
 	public void createGUITree(){
 		viewr = new TreeViewer(Arrays.asList(
                 parser.getRuleNames()),tree);
@@ -74,6 +84,13 @@ public class ANTLR {
 	}
 	
 	
+	
+	public String getNombreDB() {
+		return nombreDB;
+	}
+	public void setNombreDB(String nombreDB) {
+		this.nombreDB = nombreDB;
+	}
 	public boolean isErrorST() {
 		return errorST;
 	}
