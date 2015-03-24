@@ -94,7 +94,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitCreateDB(SQLParser.CreateDBContext ctx){
 		String nuevaBD = ctx.ID().getText();		
 		exitoCarpeta = crearCarpeta(pathBase+nuevaBD);
-		archivoXML = new XMLFile(nuevaBD, pathBase+"\\"+nuevaBD+"\\");
+		archivoXML = new XMLFile("Metadata."+nuevaBD, pathBase+"\\"+nuevaBD+"\\");
 		// Si se crea la carpeta es que no existe la base de datos
 		if (exitoCarpeta){
 			// Se agrega a la metadata
@@ -105,7 +105,6 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			datos.clear();
 			datos.add(nuevaBD);
 			datos.add("0");
-			System.out.println(datos);
 			archivoXML.add("BaseDeDatos", columnas, datos);
 		}else{
 			mensajes.add("Ya existe la base de datos <"+nuevaBD+">");
@@ -145,8 +144,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			// cambiamos el nombre de la carpeta			
 			f.renameTo(new File(pathBase+"\\"+nuevoNombre));
 			// Cambiamos el JSON interno
-			archivoXML = new XMLFile(nombreViejo, pathBase+"\\"+nuevoNombre+"\\");
-			archivoXML.cambiarNombre(nuevoNombre);
+			archivoXML = new XMLFile("Metadata."+nombreViejo, pathBase+"\\"+nuevoNombre+"\\");
+			archivoXML.cambiarNombre("Metadata."+nuevoNombre);
 		}
 		
 		return "";
@@ -221,6 +220,85 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		return "";
 	}
+	
+	public String visitCreateTB(SQLParser.CreateTBContext ctx){
+		data.clear();
+		columnas.clear();
+		datos.clear();
+		if(nombreBD.equals("")){
+			mensajes.add("No se ha especificado una base de datos a utilizar");
+		}
+		else{	
+			String nombreTabla = ctx.ID(0).getText();
+			String pathCarpeta = pathBase+"\\"+nombreBD;
+			// Revisamos si ya existe la tabla, revisando si existe el XML de la tabla
+			File arch = new File(pathCarpeta+"\\"+nombreTabla+".XML");
+			if (arch.exists()){
+				mensajes.add("La tabla <"+nombreTabla+"> ya existe en <"+nombreBD+">");
+				return "_error_";
+			}
+			// Modificamos la metadata principal, agregando uno a la cantidad de tablas
+			archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
+			NodeList list = archivoXML.getRootElement().getElementsByTagName("BaseDeDatos");			
+			int cantidadTablas;
+			for (int i = 0; i < list.getLength(); i++) {
+				org.w3c.dom.Node nodo =  list.item(i);
+				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+		           Element eElement = (Element) nodo;
+		           if (eElement.getElementsByTagName("nombre").item(0).getTextContent().equals(nombreBD)){
+		        	   cantidadTablas = Integer.parseInt(eElement.getElementsByTagName("cantidadTablas").item(0).getTextContent())+1;
+		        	   eElement.getElementsByTagName("cantidadTablas").item(0).setTextContent(""+cantidadTablas);		        	   
+		           }
+				}
+			}
+			archivoXML.createFile();
+			
+			// Modificamos la metadata dentro de esta base de datos
+			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+			// Primero agregamos el nombre y su cantidad de registros que empieza en 0
+			columnas.add("nombre");
+			columnas.add("cantidadRegistros");
+			datos.add(nombreTabla);
+			datos.add("0");
+			archivoXML.add("tabla", columnas, datos);
+			
+			// Ahora agregamos columnas y sus tipos a la metadata de la tabla
+			// Listamos los nombres y los tipos de las columnas, a partir de id1 revisamos todos
+			ArrayList<String> nombres = new ArrayList();
+			ArrayList<String> tipoDato = new ArrayList();
+			for (int x=1; x<ctx.ID().size(); x++){
+				String idActual = ctx.ID(x).getText();
+				nombres.add(idActual);
+				// Visitamos el tipo
+				String tipoActual = visit(ctx.tipo(x-1));
+				tipoDato.add(tipoActual);
+			}
+			archivoXML.agregarListaColumnas(nombreTabla, nombres, tipoDato);
+			
+			// Agregamos las constraints
+			
+			// Creamos el archivo XML para esta tabla
+			archivoXML = new XMLFile(nombreTabla, pathCarpeta);			
+		}
+		return "";
+	}
+	
+	public String visitTipoFloat(SQLParser.TipoFloatContext ctx) {
+		return "float";
+	}
+
+	
+	public String visitTipoInt(SQLParser.TipoIntContext ctx) {
+		return "int";
+	}
+
+	public String visitTipoDate(SQLParser.TipoDateContext ctx) {
+		return "date";
+	}
+
+	public String visitTipoChar(SQLParser.TipoCharContext ctx) {
+		return "char("+ctx.NUM().getText()+")";
+	}
 
 	public boolean crearCarpeta(String nombre){
 		File f = new File(nombre);		
@@ -274,7 +352,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	// Para cambiar el nombre de la base de datos en la metadata
 	public void cambiarNombreBD(String nuevo, String viejo){
 		archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
-		archivoXML.cambiarColumna("nombre", nuevo, viejo);
+		archivoXML.cambiarColumna("nombre", nuevo, viejo, "BaseDeDatos");
 		archivoXML.createFile();
 	}
 }

@@ -10,3 +10,10 @@
 /SQLParser$RenameTBContext.class
 /SQLParser$ShowColumsContext.class
 /SQLParser$ShowTBContext.class
+/SQLParser$CCheckContext.class
+/SQLParser$CFKContext.class
+/SQLParser$CPKContext.class
+/SQLParser$TipoCharContext.class
+/SQLParser$TipoDateContext.class
+/SQLParser$TipoFloatContext.class
+/SQLParser$TipoIntContext.class

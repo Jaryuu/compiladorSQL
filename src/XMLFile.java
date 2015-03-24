@@ -26,6 +26,7 @@ public class XMLFile {
 	private Document doc;
 	private Element rootElement;
 	
+	// El path es la carpeta donde se encuentra el archivo
 	public XMLFile(String nombre,  String path){
 		this.nombre = nombre;
 		this.path = path;
@@ -121,8 +122,8 @@ public class XMLFile {
 		}
 	}
 	
-	public void cambiarColumna(String cambiar, String nuevo, String viejo){
-		NodeList list = rootElement.getElementsByTagName("BaseDeDatos");
+	public void cambiarColumna(String cambiar, String nuevo, String viejo, String tipo){
+		NodeList list = rootElement.getElementsByTagName(tipo);
 		 
 		for (int i = 0; i < list.getLength(); i++) {
 			org.w3c.dom.Node nodo =  list.item(i);
@@ -134,6 +135,48 @@ public class XMLFile {
 			}
 		}
 		createFile();		
+	}
+	
+	// Este método agrega las columnas, nombre y tipo de dato, tamaño en caso de char
+	public void agregarListaColumnas(String nombreTabla, ArrayList<String> nombres, ArrayList<String> datos){
+		// En la metadata de la base de datos buscamos
+		Element lista, temp, eTabla = null;
+		// Buscamos la tabla en el xml
+		NodeList list = rootElement.getElementsByTagName("tabla");
+		 
+		for (int i = 0; i < list.getLength(); i++) {
+			org.w3c.dom.Node nodo =  list.item(i);
+			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+	           Element eElement = (Element) nodo;
+	           if (eElement.getElementsByTagName("nombre").item(0).getTextContent().equals(nombreTabla)){
+	        	   eTabla = eElement;
+	        	   break;
+	           }
+			}
+		}
+		
+		for (int i=0; i<nombres.size(); i++){
+			lista = doc.createElement("columna");
+			eTabla.appendChild(lista);
+			// Agregamos el nombre
+			temp = doc.createElement("nombre");			
+			temp.appendChild(doc.createTextNode(nombres.get(i)));
+			lista.appendChild(temp);
+			// Agregamos el tipo
+			temp = doc.createElement("tipoDato");		
+			if (datos.get(i).startsWith("char(")){
+				String tamaño = datos.get(i).substring(5, datos.get(i).length()-1);
+				temp.appendChild(doc.createTextNode("char"));
+				lista.appendChild(temp);
+				temp = doc.createElement("tamaño");
+				temp.appendChild(doc.createTextNode(tamaño));
+			}else{
+				temp.appendChild(doc.createTextNode(datos.get(i)));
+			}
+			lista.appendChild(temp);
+		}
+		createFile();
+		
 	}
 	
 	public void cambiarNombre(String nuevo){

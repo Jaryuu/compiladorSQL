@@ -211,7 +211,7 @@ data
 ;
 
 table
-:	K_CREATE  K_TABLE  ID ('(' (ID tipo (K_CONSTRAINT constraint)? )* ')')?	#createTB
+:	K_CREATE  K_TABLE  ID ('(' (ID tipo (',' ID tipo)*)+ (K_CONSTRAINT constraint (',' K_CONSTRAINT constraint)*)* ')')	#createTB
 |	K_ALTER  K_TABLE  ID   (tableAction)*									#alterTB
 |	K_ALTER  K_TABLE  ID  K_RENAME  K_TO  ID 								#renameTB
 |	K_DROP  K_TABLE  ID														#dropTB
@@ -227,16 +227,16 @@ tableAction
 ;
 
 tipo
-:	K_INT
-|	K_FLOAT
-|	K_DATE
-|	K_CHAR '('NUM')'
+:	K_INT																	# tipoInt
+|	K_FLOAT																	# tipoFloat
+|	K_DATE																	# tipoDate
+|	K_CHAR '('NUM')'														# tipoChar
 ;
 
 constraint
-:	K_PRIMARY  K_KEY '(' (ID (',' ID )*)* ')'
-|	K_FOREIGN  K_KEY '(' ID ')' K_REFERENCES ID '('ID')'
-|	K_CHECK (exp)
+:	K_PRIMARY  K_KEY '(' (ID (',' ID )*)* ')'								# cPK
+|	K_FOREIGN  K_KEY '(' ID ')' K_REFERENCES ID '('ID')'					# cFK
+|	K_CHECK (exp)															# cCheck
 ;
 
 exp
