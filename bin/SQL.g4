@@ -238,9 +238,9 @@ tipo
 ;
 
 constraint
-:	K_PRIMARY  K_KEY ID '(' (ID (',' ID )*)* ')'											# cPK
-|	K_FOREIGN  K_KEY ID '(' (ID (',' ID )*)* ')' references ID '(' (ID (',' ID )*)* ')'		# cFK
-|	ID K_CHECK (exp)																		# cCheck
+:	K_PRIMARY  K_KEY ID '(' (ID (',' ID )*)* ')'							# cPK
+|	K_FOREIGN  K_KEY ID '(' (ID (',' ID )*)* ')' references					# cFK
+|	ID K_CHECK (exp)														# cCheck
 ;
 
 references
