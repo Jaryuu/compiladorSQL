@@ -313,6 +313,30 @@ public class XMLFile {
 		return existe;
 	}
 	
+	
+	public String tipoCol(String nombreTabla, String nombreCol){
+		String tipo="None";
+		NodeList list = rootElement.getElementsByTagName("tabla");
+		for (int i = 0; i < list.getLength(); i++) {
+			org.w3c.dom.Node nodo =  list.item(i);
+			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+	           Element eElement = (Element) nodo;
+	           if (nombreTabla.equals(eElement.getElementsByTagName("nombreTabla").item(0).getTextContent())){
+	        	   NodeList listInterna = eElement.getElementsByTagName("columna");
+	        	   for (int j = 0; j<listInterna.getLength(); j++){
+	        		   org.w3c.dom.Node nodoInterno =  list.item(j);
+	        		   Element eElementInterno = (Element) nodoInterno;
+	        		   if (nombreCol.equals(eElementInterno.getElementsByTagName("nombreColumna").item(0).getTextContent())){
+	        			   tipo=eElementInterno.getElementsByTagName("tipoDato").item(0).getTextContent();
+	        		   }
+	        	   }
+	        	   
+	           }
+			}
+		}
+		return tipo;
+	}
+	
 	// No la use, no la probe
 	public ArrayList<NodeList> lookupNodeList(ArrayList<NodeList> llevo, ArrayList<String> adentrar, int indice){
 		ArrayList<NodeList> devolverNodeList = new ArrayList<NodeList>();

@@ -343,11 +343,21 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		for (int y=1; y<ctx.references().ID().size();y++){
 			String idAct = ctx.references().ID(y).getText();
 			if (! archivoXML.existeCol(idTablaRef, idAct)){
-				mensajes.add("No existe la columan <"+idAct+"> en tabla <"+idTablaRef+">");
+				mensajes.add("No existe la columna <"+idAct+"> en tabla <"+idTablaRef+">");
 				return "_error_";
+			}
+			else{
+				if(!archivoXML.tipoCol(idTablaRef,idAct).equals(archivoXML.tipoCol(nombreTabla,colIds.get(y-1)))){
+					mensajes.add("la columna <"+idAct+"> en tabla <"+idTablaRef+"> no tiene el mismo tipo que la columna <"+colIds.get(y-1)+">");
+					return "_error_";
+				}
 			}
 			referencias.add(idTablaRef+"."+idAct);
 		}
+		
+		
+		
+		
 		// Los agregamos al constraints
 		archivoXML.agregarConstraint(nombreTabla, "foreignKey", nombreC, colIds, referencias);		
 		return "";
@@ -355,6 +365,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	
 	public String visitReferences(SQLParser.ReferencesContext ctx){
 		return super.visitReferences(ctx);
+	}
+	
+	public String visitCCheck(SQLParser.CCheckContext ctx){
+		
+		return "";
 	}
 	
 	public String visitTipoFloat(SQLParser.TipoFloatContext ctx) {
