@@ -52,6 +52,16 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitData(@NotNull SQLParser.DataContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SQLParser#references}.
+	 * @param ctx the parse tree
+	 */
+	void enterReferences(@NotNull SQLParser.ReferencesContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#references}.
+	 * @param ctx the parse tree
+	 */
+	void exitReferences(@NotNull SQLParser.ReferencesContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code tipoFloat}
 	 * labeled alternative in {@link SQLParser#tipo}.
 	 * @param ctx the parse tree
@@ -73,6 +83,16 @@ public interface SQLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitEntero(@NotNull SQLParser.EnteroContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SQLParser#constraints}.
+	 * @param ctx the parse tree
+	 */
+	void enterConstraints(@NotNull SQLParser.ConstraintsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#constraints}.
+	 * @param ctx the parse tree
+	 */
+	void exitConstraints(@NotNull SQLParser.ConstraintsContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code alterDB}
 	 * labeled alternative in {@link SQLParser#database}.

@@ -37,6 +37,12 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitData(@NotNull SQLParser.DataContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SQLParser#references}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReferences(@NotNull SQLParser.ReferencesContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code tipoFloat}
 	 * labeled alternative in {@link SQLParser#tipo}.
 	 * @param ctx the parse tree
@@ -49,6 +55,12 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitEntero(@NotNull SQLParser.EnteroContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#constraints}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConstraints(@NotNull SQLParser.ConstraintsContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code alterDB}
 	 * labeled alternative in {@link SQLParser#database}.

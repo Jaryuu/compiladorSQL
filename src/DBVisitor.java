@@ -24,7 +24,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	private ArrayList<String> mensajes, columnas, datos;
 	private XMLFile archivoXML;
 	private String pathBase;
-	private String nombreBD = "", showNombre;
+	private String nombreBD = "", showNombre, nombreTabla;
 	private boolean exitoCarpeta;
 	String contenido;	
 	ArrayList<ArrayList<String>> data;
@@ -182,8 +182,6 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		return "";
 	}
 	
-	
-	@Override
 	public String visitShowTB(SQLParser.ShowTBContext ctx) {
 		data.clear();
 		columnas.clear();
@@ -195,8 +193,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			showNombre = nombreBD+": Tables";
 			columnas.add("NombreTabla");
 			columnas.add("CantRegistros");
-			archivoXML = new XMLFile(nombreBD, pathBase+"\\"+nombreBD+"\\");
-			NodeList list = archivoXML.getRootElement().getElementsByTagName("Tabla");
+			archivoXML = new XMLFile("Metadata."+nombreBD, pathBase+"\\"+nombreBD+"\\");
+			NodeList list = archivoXML.getRootElement().getElementsByTagName("tabla");
 			org.w3c.dom.Node nodo;
 			ArrayList<String> nuevoDato;
 			for (int i = 0; i < list.getLength(); i++) {
@@ -204,7 +202,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
 					Element eElement = (Element) nodo;
 					datos.add(eElement.getElementsByTagName("nombreTabla").item(0).getTextContent());
-					datos.add(eElement.getElementsByTagName("cantRegistros").item(0).getTextContent());
+					datos.add(eElement.getElementsByTagName("cantidadRegistros").item(0).getTextContent());
 					
 					//Por que no solo agregar datos a data? because f u that's why (y porque data se vacia)
 					ArrayList<String> datosCopia = new ArrayList<String>();
@@ -229,7 +227,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			mensajes.add("No se ha especificado una base de datos a utilizar");
 		}
 		else{	
-			String nombreTabla = ctx.ID(0).getText();
+			nombreTabla = ctx.ID(0).getText();
 			String pathCarpeta = pathBase+"\\"+nombreBD;
 			// Revisamos si ya existe la tabla, revisando si existe el XML de la tabla
 			File arch = new File(pathCarpeta+"\\"+nombreTabla+".XML");
@@ -256,11 +254,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			// Modificamos la metadata dentro de esta base de datos
 			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
 			// Primero agregamos el nombre y su cantidad de registros que empieza en 0
-			columnas.add("nombre");
+			columnas.add("nombreTabla");
 			columnas.add("cantidadRegistros");
 			datos.add(nombreTabla);
 			datos.add("0");
-			archivoXML.add("tabla", columnas, datos);
+			archivoXML.add("tabla", columnas, datos);		
 			
 			// Ahora agregamos columnas y sus tipos a la metadata de la tabla
 			// Listamos los nombres y los tipos de las columnas, a partir de id1 revisamos todos
@@ -272,15 +270,91 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				// Visitamos el tipo
 				String tipoActual = visit(ctx.tipo(x-1));
 				tipoDato.add(tipoActual);
-			}
+			}		
+			datos.clear();
+			// Para poder tener los nombres en una lista visible para todos los metodos
+			datos = nombres;			
 			archivoXML.agregarListaColumnas(nombreTabla, nombres, tipoDato);
 			
-			// Agregamos las constraints
+			// Agregamos la tag de constraints
+			archivoXML.addTagConstraint(nombreTabla);	
+			
+			// Visitamos lo demas
+			visit(ctx.constraints());
 			
 			// Creamos el archivo XML para esta tabla
 			archivoXML = new XMLFile(nombreTabla, pathCarpeta);			
 		}
 		return "";
+	}
+	
+	// En datos vienen los ids de las columnas
+	public String visitConstraints(SQLParser.ConstraintsContext ctx){		
+		// En nombre tabla llevamos el nombre de la tabla y nombreBD llevamos el nombre de la base de datos
+		for (int y=0; y<ctx.constraint().size(); y++){
+			visit(ctx.constraint(y));
+		}
+		return "";
+	}
+	
+	// En datos vienen los ids de las columnas
+	public String visitCPK(SQLParser.CPKContext ctx){
+		ArrayList<String> ids = new ArrayList();
+		String nombreC = ctx.ID(0).getText();
+		for (int y=1; y<ctx.ID().size();y++){
+			// Revisamos que existan todos los ids ya en la tabla, a traves de datos
+			if (! datos.contains(ctx.ID(y).getText())){
+				mensajes.add("La tabla <"+nombreTabla+"> no tiene la columna <"+ctx.ID(y).getText()+">");
+				return "_error_";
+			}
+			ids.add(ctx.ID(y).getText());
+		}
+		// Los agregamos al constraints
+		archivoXML.agregarConstraint(nombreTabla, "primaryKey", nombreC, ids);
+		return "";
+	}
+	
+	// En datos vienen los ids de las columnas
+	public String visitCFK(SQLParser.CFKContext ctx){
+		// Se revisa si se tiene la mista cantidad de ids referencias, ids
+		if (ctx.ID().size() != ctx.references().ID().size()){
+			mensajes.add("No se tiene la misma cantidad de ids de las columnas de la tabla y de las referencias");
+			return "_error_";
+		}
+		ArrayList<String> colIds = new ArrayList();
+		String nombreC = ctx.ID(0).getText();
+		for (int y=1; y<ctx.ID().size();y++){
+			// Revisamos que existan las columnas
+			if (! datos.contains(ctx.ID(y).getText())){
+				mensajes.add("La tabla <"+nombreTabla+"> no tiene la columna <"+ctx.ID(y).getText()+">");
+				return "_error_";
+			}
+			colIds.add(ctx.ID(y).getText());
+		}
+		ArrayList<String> referencias = new ArrayList();
+		String idTablaRef = ctx.references().ID(0).getText();
+		// Revisamos que exista la tabla en esta base de datos
+		File existe = new File(pathBase+"\\"+nombreBD+"\\"+idTablaRef+".XML");
+		if (! existe.exists()){
+			mensajes.add("No existe la tabla <"+idTablaRef+">");
+			return "_error_";
+		}
+		
+		for (int y=1; y<ctx.references().ID().size();y++){
+			String idAct = ctx.references().ID(y).getText();
+			if (! archivoXML.existeCol(idTablaRef, idAct)){
+				mensajes.add("No existe la columan <"+idAct+"> en tabla <"+idTablaRef+">");
+				return "_error_";
+			}
+			referencias.add(idTablaRef+"."+idAct);
+		}
+		// Los agregamos al constraints
+		archivoXML.agregarConstraint(nombreTabla, "foreignKey", nombreC, colIds, referencias);		
+		return "";
+	}
+	
+	public String visitReferences(SQLParser.ReferencesContext ctx){
+		return super.visitReferences(ctx);
 	}
 	
 	public String visitTipoFloat(SQLParser.TipoFloatContext ctx) {

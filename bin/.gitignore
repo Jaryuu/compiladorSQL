@@ -17,3 +17,5 @@
 /SQLParser$TipoDateContext.class
 /SQLParser$TipoFloatContext.class
 /SQLParser$TipoIntContext.class
+/SQLParser$ReferencesContext.class
+/SQLParser$ConstraintsContext.class
