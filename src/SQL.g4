@@ -211,7 +211,7 @@ data
 ;
 
 table
-:	K_CREATE  K_TABLE  ID '(' (ID tipo(',' ID tipo)*)+  constraints ')'		#createTB
+:	K_CREATE  K_TABLE  ID '(' (ID tipo (',' ID tipo)*)+ (constraints) ')'		#createTB
 |	K_ALTER  K_TABLE  ID   (tableAction)*									#alterTB
 |	K_ALTER  K_TABLE  ID  K_RENAME  K_TO  ID 								#renameTB
 |	K_DROP  K_TABLE  ID														#dropTB
@@ -238,9 +238,9 @@ tipo
 ;
 
 constraint
-:	K_PRIMARY  K_KEY ID '(' (ID (',' ID )*)* ')'							# cPK
-|	K_FOREIGN  K_KEY ID '(' (ID (',' ID )*)* ')' references					# cFK
-|	ID K_CHECK (exp)														# cCheck
+:	K_PRIMARY  K_KEY ID '(' (ID (',' ID )*)* ')'											# cPK
+|	K_FOREIGN  K_KEY ID '(' (ID (',' ID )*)* ')' references ID '(' (ID (',' ID )*)* ')'		# cFK
+|	ID K_CHECK (exp)																		# cCheck
 ;
 
 references
@@ -317,7 +317,7 @@ relationalExp
 ;
 
 insert
-:	K_INSERT  K_INTO  ID '(' (ID (',' ID )*)* ') ' K_VALUES '(' (formatValue (',' formatValue )*)* ')'
+:	K_INSERT  K_INTO  ID '(' (ID (',' ID )*)* ')' K_VALUES '(' (formatValue (',' formatValue )*)* ')'
 ;
 
 formatValue

@@ -1,0 +1,2 @@
+USE DATABASE holamundo
+create table laTabla ( nombre char(12) CONSTRAINT Primary key unaConstraint (nombre) )
