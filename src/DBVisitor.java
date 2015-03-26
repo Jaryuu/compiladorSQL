@@ -346,8 +346,20 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		for (int y=1; y<ctx.references().ID().size();y++){
 			String idAct = ctx.references().ID(y).getText();
 			if (! archivoXML.existeCol(idTablaRef, idAct)){
-				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la columan <"+idAct+"> en tabla <"+idTablaRef+">");
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la columna <"+idAct+"> en tabla <"+idTablaRef+">");
 				return "_error_";
+			}
+			else{
+				if(!archivoXML.tipoCol(idTablaRef,idAct).equals(archivoXML.tipoCol(nombreTabla,colIds.get(y-1)))){
+					if (archivoXML.tipoCol(idTablaRef,idAct).startsWith("char")){
+						mensajes.add("la columna <"+idAct+"> en tabla <"+idTablaRef+"> no tiene el mismo tamaño de char que la columna <"+colIds.get(y-1)+">");
+						return "_error_";	
+					}
+					else{
+						mensajes.add("la columna <"+idAct+"> en tabla <"+idTablaRef+"> no tiene el mismo tipo que la columna <"+colIds.get(y-1)+">");
+						return "_error_";	
+					}
+				}
 			}
 			referencias.add(idTablaRef+"."+idAct);
 		}
