@@ -13,6 +13,9 @@ public class Main {
 			GUI frame = new GUI();
 			frame.setVisible(true);
 			frame.setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
+			frame.getTextPane().requestFocus();
+			// Se sube
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
