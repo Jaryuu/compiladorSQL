@@ -177,8 +177,9 @@ MULTILINE_COMMENT
 ;
 
 ID : LETTER (LETTER | DIGIT)* ;
+NUM: UNUM(UNUM)* ;
 UNUM: DIGIT ;
-NUM: (UNUM)+ ;
+
 CHAR: '\''((LETTER|DIGIT|| '!' | '"' | '#' | '$' | '%' | '&' | '\'' | '(' | ')' | '*' | '+' 
 | ',' | '-' | '.' | '/' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | '[' | '\\' | ']' | '^' | '_' | '`'| '{' | '|' | '}' | '~' 
 '\t'| '\n' | '\"' |  '\\n' | '\\t' ))* '\'';
@@ -220,7 +221,7 @@ table
 ;
 
 constraints
-:	(K_CONSTRAINT constraint (',' constraint)*)*
+:	(K_CONSTRAINT constraint (',' K_CONSTRAINT constraint)*)*
 ;
 
 tableAction
@@ -234,7 +235,7 @@ tipo
 :	K_INT																	# tipoInt
 |	K_FLOAT																	# tipoFloat
 |	K_DATE																	# tipoDate
-|	K_CHAR '(' (NUM) ')'													# tipoChar
+|	K_CHAR '(' NUM ')'														# tipoChar
 ;
 
 constraint
@@ -275,6 +276,7 @@ unifactor
 factor
 :	literal
 |	'(' exp ')'
+| 	ID 
 ;
 
 literal
@@ -344,7 +346,11 @@ character
 ;
 
 update
-:	K_UPDATE  ID  K_SET  condicion (',' condicion)*  (K_WHERE condicion)?
+:	K_UPDATE  ID  K_SET  asignacion (',' asignacion)*  (K_WHERE exp)?
+;
+
+asignacion
+:	ID '=' literal
 ;
 
 condicion
@@ -352,13 +358,13 @@ condicion
 ;
 
 delete
-:	K_DELETE   K_FROM  ID  K_WHERE condicion
+:	K_DELETE   K_FROM  ID  K_WHERE exp
 ;
 
 query
-:	K_SELECT ('*' | (ID (',' ID)*))  K_FROM  ID  (K_WHERE  condicion K_ORDER  K_BY (expresion (K_ASC | K_DESC) (',' expresion (K_ASC | K_DESC))*)*)? 
+:	K_SELECT ('*' | (ID (',' ID)*))  K_FROM  ID  (K_WHERE  exp K_ORDER  K_BY (expresion (K_ASC | K_DESC) (',' expresion (K_ASC | K_DESC))*)*)? 
 ;
 
 expresion
-:	ID ('.' ID)?
+:	ID 
 ;

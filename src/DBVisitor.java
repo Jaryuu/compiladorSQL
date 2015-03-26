@@ -83,8 +83,6 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		    archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 		}else{
 			archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
-			// Se crea el JSON de metadata			
-			System.out.println("Se creó la carpeta BaseDeDatos");
 		}
 		
 		return super.visitTodo(ctx);
@@ -107,7 +105,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			datos.add("0");
 			archivoXML.add("BaseDeDatos", columnas, datos);
 		}else{
-			mensajes.add("Ya existe la base de datos <"+nuevaBD+">");
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Ya existe la base de datos <"+nuevaBD+">");
+			return "_error_";
 		}
 		return "";
 	}
@@ -118,9 +117,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		if (folder.exists()){
 			deleteFolder(folder);
 			borrarBD(borrarBD);
-		}else{
-			System.out.println(folder.getAbsolutePath());
-			mensajes.add("No existe la base de datos <"+borrarBD+">");
+		}else{		
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la base de datos <"+borrarBD+">");
+			return "_error_";
 		}		
 		return "";
 	}
@@ -134,9 +133,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		File f = new File(pathBase+"\\"+nombreViejo);
 		File f2 = new File(pathBase+"\\"+nuevoNombre);
 		if (f2.exists()){
-			mensajes.add("La base de datos <"+nuevoNombre+"> ya existe");
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La base de datos <"+nuevoNombre+"> ya existe");
+			return "_error_";
 		}else if (! f.exists()){
-			mensajes.add("No existe la base de datos <"+nombreViejo+">");
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la base de datos <"+nombreViejo+">");
+			return "_error_";
 		}else{
 			// Se cambia el nombre en la metadata			
 			archivoXML = new XMLFile("metadataBaseDeDatos", pathBase);
@@ -176,8 +177,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		File folder = new File(pathBase+"\\"+nombreBD);
 		if (!folder.exists()){
 			nombreBD = "";
-			System.out.println(folder.getAbsolutePath());
-			mensajes.add("No existe la base de datos <"+nombreBD+">");
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la base de datos <"+nombreBD+">");
+			return "_error_";
 		}		
 		return "";
 	}
@@ -187,7 +188,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		columnas.clear();
 		datos.clear();
 		if(nombreBD.equals("")){
-			mensajes.add("No se ha especificado una base de datos a utilizar");
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
+			return "_error_";
 		}
 		else{		
 			showNombre = nombreBD+": Tables";
@@ -224,7 +226,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		columnas.clear();
 		datos.clear();
 		if(nombreBD.equals("")){
-			mensajes.add("No se ha especificado una base de datos a utilizar");
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
+			return "_error_";
 		}
 		else{	
 			nombreTabla = ctx.ID(0).getText();
@@ -232,7 +235,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			// Revisamos si ya existe la tabla, revisando si existe el XML de la tabla
 			File arch = new File(pathCarpeta+"\\"+nombreTabla+".XML");
 			if (arch.exists()){
-				mensajes.add("La tabla <"+nombreTabla+"> ya existe en <"+nombreBD+">");
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La tabla <"+nombreTabla+"> ya existe en <"+nombreBD+">");
 				return "_error_";
 			}
 			// Modificamos la metadata principal, agregando uno a la cantidad de tablas
@@ -304,7 +307,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		for (int y=1; y<ctx.ID().size();y++){
 			// Revisamos que existan todos los ids ya en la tabla, a traves de datos
 			if (! datos.contains(ctx.ID(y).getText())){
-				mensajes.add("La tabla <"+nombreTabla+"> no tiene la columna <"+ctx.ID(y).getText()+">");
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La tabla <"+nombreTabla+"> no tiene la columna <"+ctx.ID(y).getText()+">");
 				return "_error_";
 			}
 			ids.add(ctx.ID(y).getText());
@@ -318,7 +321,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitCFK(SQLParser.CFKContext ctx){
 		// Se revisa si se tiene la mista cantidad de ids referencias, ids
 		if (ctx.ID().size() != ctx.references().ID().size()){
-			mensajes.add("No se tiene la misma cantidad de ids de las columnas de la tabla y de las referencias");
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se tiene la misma cantidad de ids de las columnas de la tabla y de las referencias");
 			return "_error_";
 		}
 		ArrayList<String> colIds = new ArrayList();
@@ -326,7 +329,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		for (int y=1; y<ctx.ID().size();y++){
 			// Revisamos que existan las columnas
 			if (! datos.contains(ctx.ID(y).getText())){
-				mensajes.add("La tabla <"+nombreTabla+"> no tiene la columna <"+ctx.ID(y).getText()+">");
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La tabla <"+nombreTabla+"> no tiene la columna <"+ctx.ID(y).getText()+">");
 				return "_error_";
 			}
 			colIds.add(ctx.ID(y).getText());
@@ -336,47 +339,40 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		// Revisamos que exista la tabla en esta base de datos
 		File existe = new File(pathBase+"\\"+nombreBD+"\\"+idTablaRef+".XML");
 		if (! existe.exists()){
-			mensajes.add("No existe la tabla <"+idTablaRef+">");
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+idTablaRef+">");
 			return "_error_";
 		}
 		
 		for (int y=1; y<ctx.references().ID().size();y++){
 			String idAct = ctx.references().ID(y).getText();
 			if (! archivoXML.existeCol(idTablaRef, idAct)){
-				mensajes.add("No existe la columna <"+idAct+"> en tabla <"+idTablaRef+">");
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la columan <"+idAct+"> en tabla <"+idTablaRef+">");
 				return "_error_";
-			}
-			else{
-				if(!archivoXML.tipoCol(idTablaRef,idAct).equals(archivoXML.tipoCol(nombreTabla,colIds.get(y-1)))){
-					if (archivoXML.tipoCol(idTablaRef,idAct).startsWith("char")){
-						mensajes.add("la columna <"+idAct+"> en tabla <"+idTablaRef+"> no tiene el mismo tamaño de char que la columna <"+colIds.get(y-1)+">");
-						return "_error_";	
-					}
-					else{
-						mensajes.add("la columna <"+idAct+"> en tabla <"+idTablaRef+"> no tiene el mismo tipo que la columna <"+colIds.get(y-1)+">");
-						return "_error_";	
-					}
-					
-				}
 			}
 			referencias.add(idTablaRef+"."+idAct);
 		}
-		
-		
-		
-		
 		// Los agregamos al constraints
 		archivoXML.agregarConstraint(nombreTabla, "foreignKey", nombreC, colIds, referencias);		
 		return "";
 	}
 	
-	public String visitReferences(SQLParser.ReferencesContext ctx){
-		return super.visitReferences(ctx);
+	public String visitCCheck(SQLParser.CCheckContext ctx){
+		// Esto se va a guardar check-nombreCheck-stringCheck
+		if (visit(ctx.exp()).equals("_error_")){
+			return "__error__";
+		}
+		String stringCheck = ctx.exp().getText();
+		String nombre = ctx.ID().getText();
+		archivoXML.agregarConstraint(nombreTabla, "check", nombre, stringCheck);
+		return "";
 	}
 	
-	public String visitCCheck(SQLParser.CCheckContext ctx){
-		
+	public String visitExp(SQLParser.ExpContext ctx){
 		return "";
+	}
+	
+	public String visitReferences(SQLParser.ReferencesContext ctx){
+		return super.visitReferences(ctx);
 	}
 	
 	public String visitTipoFloat(SQLParser.TipoFloatContext ctx) {
@@ -444,11 +440,20 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		archivoXML.createFile();
 	}
-	
+
 	// Para cambiar el nombre de la base de datos en la metadata
 	public void cambiarNombreBD(String nuevo, String viejo){
 		archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 		archivoXML.cambiarColumna("nombre", nuevo, viejo, "BaseDeDatos");
 		archivoXML.createFile();
+	}
+	
+	public void agregarMensaje(int linea, int charPos, String mensaje){
+		try{
+			String mensajeActual = linea+":"+charPos+"-->"+mensaje;
+			mensajes.add(mensajeActual);
+		}catch (Exception e){
+			//Algo
+		}
 	}
 }

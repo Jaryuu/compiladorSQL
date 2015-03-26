@@ -232,17 +232,20 @@ public class XMLFile {
 	        	   Element elementoFK = doc.createElement("foreignKey");	        	   
 	        	   // Agregamos primary key
 	        	   eElement.appendChild(elementoFK);
+	        	   // El nombre y la referencia van adentro de itemFK	        	   
 	        	   // A esto le agregamos el nombre, las columnas y las referencias
 	        	   Element temporal = doc.createElement("nombreFK");
-	        	   Element temporal2 = doc.createElement("referencia");
 	        	   temporal.appendChild(doc.createTextNode(nombreConstraint));
 	        	   elementoFK.appendChild(temporal);
 	        	   for (int j=0; j<datos1.size(); j++){
+	        		   Element itemFK = doc.createElement("itemFK");
 	        		   temporal = doc.createElement("idColumna");
+	        		   Element temporal2 = doc.createElement("referencia");
 	        		   temporal.appendChild(doc.createTextNode(datos1.get(j)));
 	        		   temporal2.appendChild(doc.createTextNode(datos2.get(j)));
-	        		   elementoFK.appendChild(temporal);
-	        		   elementoFK.appendChild(temporal2);
+	        		   itemFK.appendChild(temporal);
+	        		   itemFK.appendChild(temporal2);
+	        		   elementoFK.appendChild(itemFK);
 	        	   }
 	        	   createFile();
 	        	   break;
@@ -250,6 +253,36 @@ public class XMLFile {
 			}
 		}
 		
+	}
+	
+	public void agregarConstraint(String nombreTabla, String tipo, String nombreConstraint, String expression){
+		Element lista, temp;
+		// Buscamos la tabla en el xml
+		NodeList list = rootElement.getElementsByTagName("tabla");		
+		 
+		for (int i = 0; i < list.getLength(); i++) {
+			org.w3c.dom.Node nodo =  list.item(i);
+			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+	           Element eElement = (Element) nodo;
+	           if (eElement.getElementsByTagName("nombreTabla").item(0).getTextContent().equals(nombreTabla)){
+	        	   // Le agrego primary key
+	        	   eElement = (Element) eElement.getElementsByTagName("constraints").item(0);	        	   
+	        	   Element elementoCK = doc.createElement(tipo);	        	   
+	        	   // Agregamos primary key
+	        	   eElement.appendChild(elementoCK);
+	        	   // El nombre y la referencia van adentro de itemFK	        	   
+	        	   // A esto le agregamos el nombre, las columnas y las referencias
+	        	   Element temporal = doc.createElement("nombreCheck");
+	        	   temporal.appendChild(doc.createTextNode(nombreConstraint));
+	        	   elementoCK.appendChild(temporal);
+	        	   temporal = doc.createElement("expresion");
+	        	   temporal.appendChild(doc.createTextNode(expression));
+	        	   elementoCK.appendChild(temporal);
+	        	   createFile();
+	        	   break;
+	           }
+			}
+		}
 	}
 	
 	public Element elementoPorNombre(String tipo, String nombreCoso, String nombre){
@@ -300,7 +333,7 @@ public class XMLFile {
 	           if (nombreTabla.equals(eElement.getElementsByTagName("nombreTabla").item(0).getTextContent())){
 	        	   NodeList listInterna = eElement.getElementsByTagName("columna");
 	        	   for (int j = 0; j<listInterna.getLength(); j++){
-	        		   org.w3c.dom.Node nodoInterno =  list.item(j);
+	        		   org.w3c.dom.Node nodoInterno =  listInterna.item(j);
 	        		   Element eElementInterno = (Element) nodoInterno;
 	        		   if (nombreCol.equals(eElementInterno.getElementsByTagName("nombreColumna").item(0).getTextContent())){
 	        			   return true;
@@ -311,35 +344,6 @@ public class XMLFile {
 			}
 		}
 		return existe;
-	}
-	
-	
-	public String tipoCol(String nombreTabla, String nombreCol){
-		String tipo="None";
-		NodeList list = rootElement.getElementsByTagName("tabla");
-		for (int i = 0; i < list.getLength(); i++) {
-			org.w3c.dom.Node nodo =  list.item(i);
-			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
-	           Element eElement = (Element) nodo;
-
-	           if (nombreTabla.equals(eElement.getElementsByTagName("nombreTabla").item(0).getTextContent())){
-	        	   NodeList listInterna = eElement.getElementsByTagName("columna");
-	        	   for (int j = 0; j<listInterna.getLength(); j++){
-	        		   org.w3c.dom.Node nodoInterno =  listInterna.item(j);
-	        		   Element eElementInterno = (Element) nodoInterno;
-	        		   if (nombreCol.equals(eElementInterno.getElementsByTagName("nombreColumna").item(0).getTextContent())){
-	        			   tipo=eElementInterno.getElementsByTagName("tipoDato").item(0).getTextContent();
-	        			   if(tipo.equals("char")){
-	        				   tipo+="("+eElementInterno.getElementsByTagName("tamaño").item(0).getTextContent()+")";
-	        			   }
-	        			   return tipo;
-	        		   }
-	        	   }
-	        	   
-	           }
-			}
-		}
-		return "None";
 	}
 	
 	// No la use, no la probe

@@ -24,6 +24,12 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLogicExpOr(@NotNull SQLParser.LogicExpOrContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SQLParser#asignacion}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAsignacion(@NotNull SQLParser.AsignacionContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code dropTB}
 	 * labeled alternative in {@link SQLParser#table}.
 	 * @param ctx the parse tree

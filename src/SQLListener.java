@@ -30,6 +30,16 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitLogicExpOr(@NotNull SQLParser.LogicExpOrContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SQLParser#asignacion}.
+	 * @param ctx the parse tree
+	 */
+	void enterAsignacion(@NotNull SQLParser.AsignacionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#asignacion}.
+	 * @param ctx the parse tree
+	 */
+	void exitAsignacion(@NotNull SQLParser.AsignacionContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code dropTB}
 	 * labeled alternative in {@link SQLParser#table}.
 	 * @param ctx the parse tree
