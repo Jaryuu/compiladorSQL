@@ -321,20 +321,25 @@ public class XMLFile {
 			org.w3c.dom.Node nodo =  list.item(i);
 			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
 	           Element eElement = (Element) nodo;
+
 	           if (nombreTabla.equals(eElement.getElementsByTagName("nombreTabla").item(0).getTextContent())){
 	        	   NodeList listInterna = eElement.getElementsByTagName("columna");
 	        	   for (int j = 0; j<listInterna.getLength(); j++){
-	        		   org.w3c.dom.Node nodoInterno =  list.item(j);
+	        		   org.w3c.dom.Node nodoInterno =  listInterna.item(j);
 	        		   Element eElementInterno = (Element) nodoInterno;
 	        		   if (nombreCol.equals(eElementInterno.getElementsByTagName("nombreColumna").item(0).getTextContent())){
 	        			   tipo=eElementInterno.getElementsByTagName("tipoDato").item(0).getTextContent();
+	        			   if(tipo.equals("char")){
+	        				   tipo+="("+eElementInterno.getElementsByTagName("tamaño").item(0).getTextContent()+")";
+	        			   }
+	        			   return tipo;
 	        		   }
 	        	   }
 	        	   
 	           }
 			}
 		}
-		return tipo;
+		return "None";
 	}
 	
 	// No la use, no la probe

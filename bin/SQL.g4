@@ -178,7 +178,7 @@ MULTILINE_COMMENT
 
 ID : LETTER (LETTER | DIGIT)* ;
 UNUM: DIGIT ;
-NUM: DIGIT(DIGIT)* ;
+NUM: (UNUM)+ ;
 CHAR: '\''((LETTER|DIGIT|| '!' | '"' | '#' | '$' | '%' | '&' | '\'' | '(' | ')' | '*' | '+' 
 | ',' | '-' | '.' | '/' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | '[' | '\\' | ']' | '^' | '_' | '`'| '{' | '|' | '}' | '~' 
 '\t'| '\n' | '\"' |  '\\n' | '\\t' ))* '\'';
@@ -234,7 +234,7 @@ tipo
 :	K_INT																	# tipoInt
 |	K_FLOAT																	# tipoFloat
 |	K_DATE																	# tipoDate
-|	K_CHAR '(' NUM ')'														# tipoChar
+|	K_CHAR '(' (NUM) ')'													# tipoChar
 ;
 
 constraint

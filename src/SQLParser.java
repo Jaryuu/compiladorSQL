@@ -1092,7 +1092,9 @@ public class SQLParser extends Parser {
 				{
 				setState(192); match(K_CHAR);
 				setState(193); match(T__9);
+				{
 				setState(194); match(NUM);
+				}
 				setState(195); match(T__8);
 				}
 				break;

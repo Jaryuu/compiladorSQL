@@ -348,8 +348,15 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 			else{
 				if(!archivoXML.tipoCol(idTablaRef,idAct).equals(archivoXML.tipoCol(nombreTabla,colIds.get(y-1)))){
-					mensajes.add("la columna <"+idAct+"> en tabla <"+idTablaRef+"> no tiene el mismo tipo que la columna <"+colIds.get(y-1)+">");
-					return "_error_";
+					if (archivoXML.tipoCol(idTablaRef,idAct).startsWith("char")){
+						mensajes.add("la columna <"+idAct+"> en tabla <"+idTablaRef+"> no tiene el mismo tamaño de char que la columna <"+colIds.get(y-1)+">");
+						return "_error_";	
+					}
+					else{
+						mensajes.add("la columna <"+idAct+"> en tabla <"+idTablaRef+"> no tiene el mismo tipo que la columna <"+colIds.get(y-1)+">");
+						return "_error_";	
+					}
+					
 				}
 			}
 			referencias.add(idTablaRef+"."+idAct);
