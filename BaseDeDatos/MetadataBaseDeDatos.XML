@@ -1,1 +1,1 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><MetadataBaseDeDatos><BaseDeDatos><nombre>holamundo</nombre><cantidadTablas>1</cantidadTablas></BaseDeDatos><BaseDeDatos><nombre>prueba3</nombre><cantidadTablas>2</cantidadTablas></BaseDeDatos></MetadataBaseDeDatos>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><MetadataBaseDeDatos><BaseDeDatos><nombre>prueba3</nombre><cantidadTablas>2</cantidadTablas></BaseDeDatos><BaseDeDatos><nombre>cambiarTabla</nombre><cantidadTablas>3</cantidadTablas></BaseDeDatos></MetadataBaseDeDatos>

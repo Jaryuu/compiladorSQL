@@ -143,6 +143,45 @@ public class XMLFile {
 		createFile();		
 	}
 	
+	// Recibe una lista de nodos y mira si hay foreing key y mira si hay referencia a una tabla
+	public boolean referenciaFK(String tabla, NodeList list){
+		boolean hay = false;
+		for (int i=0; i<list.getLength(); i++){
+			org.w3c.dom.Node nodo =  list.item(i);
+			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+	           Element eElement = (Element) nodo;
+	           if (eElement.getElementsByTagName("itemFK").item(1).getTextContent().startsWith(tabla+".")){
+	        	   hay = true;
+	        	   return hay;
+	           }
+			}
+		}
+		return hay;
+	}
+	
+	public void cambiarFKRefTB(String viejaTabla, String nuevaTabla){
+		ArrayList<String> adentrar = new ArrayList<String>();
+		adentrar.add("tabla");
+		adentrar.add("constraints");
+		adentrar.add("itemFK");
+		ArrayList<NodeList> listasNodos = lookupNodeList(null,adentrar, 0);
+		for (int x=0; x<listasNodos.size(); x++){
+			NodeList list = listasNodos.get(x);
+			for (int y=0; y<list.getLength(); y++){
+				org.w3c.dom.Node nodo =  list.item(y);
+				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+		           Element eElement = (Element) nodo;
+		           if (eElement.getElementsByTagName("referencia").item(0).getTextContent().startsWith(viejaTabla+".")){
+		        	   String referencia = eElement.getElementsByTagName("referencia").item(0).getTextContent();
+		        	   referencia = referencia.replace(viejaTabla+".", nuevaTabla+".");		
+		        	   eElement.getElementsByTagName("referencia").item(0).setTextContent(referencia);
+		           }
+				}
+			}
+		}
+		createFile();
+	}
+	
 	// Este método agrega las columnas, nombre y tipo de dato, tamaño en caso de char
 	public void agregarListaColumnas(String nombreTabla, ArrayList<String> nombres, ArrayList<String> datos){
 		// En la metadata de la base de datos buscamos
@@ -379,14 +418,15 @@ public class XMLFile {
 		if (indice==0){
 			devolverNodeList.add(rootElement.getElementsByTagName(adentrar.get(0)));
 			return lookupNodeList(devolverNodeList, adentrar, indice+1);
-		}else if (indice<adentrar.size()){			
+		}else if (indice<adentrar.size()){	
 			for (int j=0; j<llevo.size(); j++){
 				NodeList list = llevo.get(j);
 				for (int i = 0; i < list.getLength(); i++) {			
 					org.w3c.dom.Node nodo =  list.item(i);						
 					if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
-			           Element eElement = (Element) nodo;
+			           Element eElement = (Element) nodo;			           
 			           NodeList tempList = eElement.getElementsByTagName(adentrar.get(indice));
+			           //TODO System.out.println(adentrar.get(indice)+"--"+eElement.getNodeName());
 			           devolverNodeList.add(tempList);
 					}
 				}
@@ -395,9 +435,9 @@ public class XMLFile {
 			return lookupNodeList(devolverNodeList, adentrar, indice);
 		}else{
 			return llevo;
-		}
-		
+		}		
 	}
+		
 	
 	public void cambiarNombre(String nuevo){
 		NodeList nodes = doc.getElementsByTagName(nombre);

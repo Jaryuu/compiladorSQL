@@ -403,7 +403,35 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitTipoChar(SQLParser.TipoCharContext ctx) {
 		return "char("+ctx.NUM().getText()+")";
 	}
-
+	
+	public String visitRenameTB(SQLParser.RenameTBContext ctx){
+		// Ya se eligio la base de datos
+		if(nombreBD.equals("")){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
+			return "_error_";
+		}
+		else{
+			String idTabla = ctx.ID(0).getText();
+			String nuevoNombre = ctx.ID(1).getText();
+			String pathCarpeta = pathBase+"\\"+nombreBD;
+			// Revisamos que exista la tabla
+			File f = new File(pathCarpeta+"\\"+idTabla+".XML");
+			if (! f.exists()){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+idTabla+">");
+				return "_error_";
+			}
+			// Cambiamos el nombre del archivo de la tabla
+			archivoXML = new XMLFile(idTabla, pathCarpeta);
+			archivoXML.cambiarNombre(nuevoNombre);
+			// Cambiamos el nombre en la metadata de la base de datos
+			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+			archivoXML.cambiarColumna("nombreTabla", nuevoNombre, idTabla, "tabla");
+			// Cambiamos el nombre en todos los constraints donde se hace referencia a la tabla			
+			archivoXML.cambiarFKRefTB(idTabla, nuevoNombre);
+		}
+		return "";
+	}
+	
 	public boolean crearCarpeta(String nombre){
 		File f = new File(nombre);		
 		return f.mkdir();
