@@ -225,7 +225,6 @@ public class XMLFile {
 	}
 	
 	public void agregarConstraint(String nombreTabla, String tipo, String nombreConstraint, ArrayList<String> datos){
-		boolean exito = false;
 		Element lista, temp;
 		// Buscamos la tabla en el xml
 		NodeList list = rootElement.getElementsByTagName("tabla");
@@ -342,22 +341,22 @@ public class XMLFile {
 	}
 	
 	// No la use, no la probe
-	public ArrayList<String> lookup(ArrayList<String> adentrar, String atributo, String dato){
+	public org.w3c.dom.Node buscarNodo(ArrayList<String> adentrar, String atributo, String dato){
 		ArrayList<NodeList> nodos = lookupNodeList(null, adentrar, 0);
-		ArrayList<String> datosColumna = new ArrayList<String>();
+		org.w3c.dom.Node node = null;
 		for (int i=0; i<nodos.size(); i++){
 			NodeList nodosActual = nodos.get(i);
 			for (int j=0; j<nodosActual.getLength(); j++){
-				org.w3c.dom.Node node =  nodosActual.item(j);
+				node =  nodosActual.item(j);
 				if (node.getNodeType() == Node.ELEMENT_NODE) {	           
 		           Element eElement = (Element) node;
 		           if (dato.equals(eElement.getElementsByTagName(atributo).item(0).getTextContent())){
-		        	   datosColumna.add(eElement.getElementsByTagName(atributo).item(0).getTextContent());
+		        	   return  node;
 		           }		           
 				}
 			}
 		}
-		return datosColumna;
+		return node;
 	}
 	
 	// Para ver si en una tabla existe la columna
@@ -478,6 +477,33 @@ public class XMLFile {
 		return false;
 	}
 	
+	public ArrayList<String> listarColumnas(String tabla){
+		ArrayList<String> columnas = new ArrayList<String> ();
+		ArrayList<String> adentrar = new ArrayList<String>();
+		adentrar.add("tabla");
+		ArrayList<NodeList> listasNodos = lookupNodeList(null,adentrar, 0);
+		for (int x=0; x<listasNodos.size(); x++){
+			NodeList list = listasNodos.get(x);
+			for (int y=0; y<list.getLength(); y++){
+				org.w3c.dom.Node nodo =  list.item(y);
+				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+		           Element eElement = (Element) nodo;
+		           if (eElement.getElementsByTagName("nombreTabla").item(0).getTextContent().startsWith(tabla)){
+		        	   NodeList listaColumnas = eElement.getElementsByTagName("columna");
+		        	   for (int z=0; z<listaColumnas.getLength(); z++){
+		        		   org.w3c.dom.Node nodoCol =  listaColumnas.item(z);
+		        		   if (nodo.getNodeType() == Node.ELEMENT_NODE) {
+		        			   Element eElementCol = (Element) nodoCol;
+		        			   columnas.add(eElementCol.getElementsByTagName("nombreColumna").item(0).getTextContent());
+		        		   }		    		           
+		        	   }
+		           }
+				}
+			}
+		}
+		return columnas;
+	}
+
 	public void cambiarNombre(String nuevo){
 		NodeList nodes = doc.getElementsByTagName(nombre);
 		for (int i = 0; i < nodes.getLength(); i++) {

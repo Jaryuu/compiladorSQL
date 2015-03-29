@@ -1,0 +1,44 @@
+create database prueba3 
+use database prueba3
+create table carro (tipo int, descripcion char(20) constraint primary key pk (tipo, descripcion))
+create table bmw (tipo int, algo int constraint foreign key  fk (tipo) references carro (tipo))
+
+create database prueba
+use database prueba
+create table carro (tipo char(8), idCarro int, algo int constraint primary key PK (idCarro))
+create table BMW (idBmw int, idCarro int constraint primary key PK2 (idBmw) constraint foreign key FK (idCarro, idBmw) references carro (idCarro, algo))
+
+create database prueba2
+use database prueba2
+create table persona (idP int, edad int constraint primary key PK (idP), constraint CK check (edad>18))
+
+create database prueba3 
+use database prueba3
+create table carro (tipo int, descripcion char(20) constraint primary key pk (tipo, descripcion))
+create table bmw (tipo int, algo int constraint foreign key  fk (tipo) references carro (tipo))
+alter table carro rename to vehiculo
+
+create database cambiarTabla
+use database cambiarTabla
+create table compu (fab char(20), idC int constraint primary key PK (idC))
+create table HP (ram int, idHP int constraint foreign key FK (idHP) references compu (idC))
+create table sony (ram int, idS int constraint foreign key FKS (idS) references compu (idC))
+
+create database pruebaDropTB
+use database pruebaDropTB
+create table control (palancas int)
+drop table control
+
+create database pruebaAddCol
+use database  pruebaAddCol
+create table foco (id int)
+create table linterna(color char(20))
+alter table linterna add column tipo int
+alter table linterna add column tamano char(8) constraint primary key PK (tipo), constraint foreign key FK (tipo) references foco (id)
+
+create database pruebaAddCol
+use database  pruebaAddCol
+create table foco (id int)
+create table linterna(color char(20))
+alter table linterna add column tipo int
+alter table foco add constraint primary key PK (id)

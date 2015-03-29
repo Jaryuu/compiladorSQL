@@ -213,7 +213,7 @@ data
 
 table
 :	K_CREATE  K_TABLE  ID '(' (ID tipo (',' ID tipo)*)+ (constraints) ')'	#createTB
-|	K_ALTER  K_TABLE  ID   (tableAction)*									#alterTB
+|	K_ALTER  K_TABLE  ID   (tableAction (',' tableAction)*)+				#alterTB
 |	K_ALTER  K_TABLE  ID  K_RENAME  K_TO  ID 								#renameTB
 |	K_DROP  K_TABLE  ID														#dropTB
 |	K_SHOW  K_TABLES														#showTB
@@ -225,7 +225,7 @@ constraints
 ;
 
 tableAction
-:	K_ADD  K_COLUMN  ID tipo (K_CONSTRAINT (constraint)* )? 				#addColumnTB
+:	K_ADD  K_COLUMN  ID tipo (constraints) 									#addColumnTB
 |	K_ADD  K_CONSTRAINT constraint											#addConstraintTB
 |	K_DROP  K_COLUMN  ID													#dropColumnTB
 |	K_DROP  K_CONSTRAINT  ID												#dropConstraintTB

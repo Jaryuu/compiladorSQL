@@ -22,7 +22,7 @@ import java.nio.file.Files;
 
 public class DBVisitor extends SQLBaseVisitor<String>{
 	
-	private ArrayList<String> mensajes, columnas, datos;
+	private ArrayList<String> mensajes, columnas, datos, tablaCols;
 	private XMLFile archivoXML;
 	private String pathBase;
 	private String nombreBD = "", showNombre, nombreTabla;
@@ -460,6 +460,60 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		if (tempF.exists()){
 			tempF.delete();
 		}		
+		return "";
+	}
+	
+	public String visitAlterTB(SQLParser.AlterTBContext ctx){
+		// Ya se eligio base de datos a usar
+		if(nombreBD.equals("")){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
+			return "_error_";
+		}else{
+			nombreTabla = ctx.ID().getText();
+			String pathCarpeta = pathBase +"\\"+nombreBD;
+			File f = new File(pathCarpeta+"\\"+nombreTabla+".XML");
+			// existe la tabla
+			if (! f.exists()){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "No existe la tabla <"+nombreTabla+">");
+				return "_error_";
+			}	
+			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+			// Visitamos table action
+			for (int i=0; i<ctx.tableAction().size(); i++){
+				visit(ctx.tableAction(i));
+			}
+			return "";
+		}			
+	}
+	
+	public String visitAddColumnTB(SQLParser.AddColumnTBContext ctx){
+		String nombreColumna = ctx.ID().getText();
+		// Obtenemos todas las columnas de esa tabla
+		tablaCols = archivoXML.listarColumnas(nombreTabla);
+		if (tablaCols.contains(nombreColumna)){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Ya existe la columna <"+nombreColumna+">");
+			return "_error_";
+		}		
+		tablaCols.add(ctx.ID().getText());
+		datos.clear();
+		datos = tablaCols;
+		ArrayList<String> informacion = new ArrayList<String>();
+		ArrayList<String> tipoDato = new ArrayList<String>();
+		informacion.add(nombreColumna);
+		String tipoActual = visit(ctx.tipo());	
+		tipoDato.add(tipoActual);
+		archivoXML.agregarListaColumnas(nombreTabla, informacion, tipoDato);
+		// Visitamos las constraints
+		visit(ctx.constraints());
+		return "";
+	}
+	
+	public String visitAddConstraintTB(SQLParser.AddConstraintTBContext ctx){
+		// Obtenemos todas las columnas de esa tabla
+		tablaCols = archivoXML.listarColumnas(nombreTabla);
+		datos.clear();
+		datos = tablaCols;
+		visit(ctx.constraint());
 		return "";
 	}
 	
