@@ -203,7 +203,7 @@ public class GUI extends JFrame {
 					if (! (antlr4.getError() || antlr4.isErrorST() || antlr4.isbWarning()) ) {
 						
 						updateTable(antlr4);
-						txtAreaError.setText("Console: "+antlr4.getVisitor().mensajesToString());
+						txtAreaError.setText("Console: \n"+antlr4.getVisitor().mensajesToString());
 						txtAreaError.setForeground(Color.BLACK);
 					}
 				}

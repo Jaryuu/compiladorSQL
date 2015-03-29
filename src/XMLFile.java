@@ -412,7 +412,7 @@ public class XMLFile {
 		return "None";
 	}
 	
-	// No la use, no la probe
+	// Funcion que obtiene la lista de nodos de algo adentro del archivo XML
 	public ArrayList<NodeList> lookupNodeList(ArrayList<NodeList> llevo, ArrayList<String> adentrar, int indice){
 		ArrayList<NodeList> devolverNodeList = new ArrayList<NodeList>();
 		if (indice==0){
@@ -426,7 +426,6 @@ public class XMLFile {
 					if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
 			           Element eElement = (Element) nodo;			           
 			           NodeList tempList = eElement.getElementsByTagName(adentrar.get(indice));
-			           //TODO System.out.println(adentrar.get(indice)+"--"+eElement.getNodeName());
 			           devolverNodeList.add(tempList);
 					}
 				}
@@ -437,7 +436,47 @@ public class XMLFile {
 			return llevo;
 		}		
 	}
-		
+	
+	// Metodo que borra un nodo del XML
+	// Revisa que el atributo, sea igualar y si lo es borra el nodo
+	public void eliminarNodo(ArrayList<String> adentrar, String atributo, String igualar){		
+		ArrayList<NodeList> listasNodos = lookupNodeList(null, adentrar, 0);
+		for (int x=0; x<listasNodos.size(); x++){
+			NodeList list = listasNodos.get(x);
+			for (int i = 0; i < list.getLength(); i++) {			
+				org.w3c.dom.Node nodo =  list.item(i);						
+				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+		           Element eElement = (Element) nodo;	
+		           if (igualar.equals(eElement.getElementsByTagName(atributo).item(0).getTextContent())){		        	   
+		        	   rootElement.removeChild(nodo);
+		        	   createFile();
+		        	   break;
+		           }
+				}
+			}
+		}
+	}
+	
+	public boolean revFKRefTB(String nombreTabla){
+		ArrayList<String> adentrar = new ArrayList<String>();
+		adentrar.add("tabla");
+		adentrar.add("constraints");
+		adentrar.add("itemFK");
+		ArrayList<NodeList> listasNodos = lookupNodeList(null,adentrar, 0);
+		for (int x=0; x<listasNodos.size(); x++){
+			NodeList list = listasNodos.get(x);
+			for (int y=0; y<list.getLength(); y++){
+				org.w3c.dom.Node nodo =  list.item(y);
+				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+		           Element eElement = (Element) nodo;
+		           if (eElement.getElementsByTagName("referencia").item(0).getTextContent().startsWith(nombreTabla+".")){
+		        	   return true;
+		           }
+				}
+			}
+		}
+		return false;
+	}
 	
 	public void cambiarNombre(String nuevo){
 		NodeList nodes = doc.getElementsByTagName(nombre);

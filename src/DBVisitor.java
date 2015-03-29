@@ -16,6 +16,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;
 
 import java.io.File;
+import java.nio.file.Files;
 
 
 
@@ -429,6 +430,33 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			// Cambiamos el nombre en todos los constraints donde se hace referencia a la tabla			
 			archivoXML.cambiarFKRefTB(idTabla, nuevoNombre);
 		}
+		return "";
+	}
+	
+	public String visitDropTB(SQLParser.DropTBContext ctx){
+		// TODO
+		nombreTabla = ctx.ID().getText();
+		String pathCarpeta = pathBase+"\\"+nombreBD;
+		// Revisamos que exista la tabla
+		File tempF = new File(pathCarpeta+"\\"+nombreTabla+".XML");
+		if (! tempF.exists()){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "No existe la tabla <"+nombreTabla+">");
+			return "_error_";
+		}		
+		// Revisamos que no se menciona en alguna fk
+		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+		if (archivoXML.revFKRefTB(nombreTabla)){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Se hace referencia de <"+nombreTabla+"> en alguna constraint");
+			return "_error_";
+		}
+		// Una vez revisamos que no se haga referencia a esa tabla se borra de la metadata	
+		ArrayList<String> adentrar = new ArrayList<String> ();
+		adentrar.add("tabla");
+		archivoXML.eliminarNodo(adentrar, "nombreTabla", nombreTabla);
+		// Se borra el archivo de la tabla
+		if (tempF.exists()){
+			tempF.delete();
+		}		
 		return "";
 	}
 	
