@@ -434,7 +434,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 	
 	public String visitDropTB(SQLParser.DropTBContext ctx){
-		// TODO
+		if(nombreBD.equals("")){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
+			return "_error_";
+		}
 		nombreTabla = ctx.ID().getText();
 		String pathCarpeta = pathBase+"\\"+nombreBD;
 		// Revisamos que exista la tabla
