@@ -517,6 +517,34 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		return "";
 	}
 	
+	public String visitDropColumnTB(SQLParser.DropColumnTBContext ctx){
+		String nombreColumna = ctx.ID().getText();
+		// Revisamos que exista la columna
+		if (! archivoXML.listarColumnas(nombreTabla).contains(nombreColumna)){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "La columna <"+nombreColumna+"> no existe en la tabla <"+nombreTabla+">");			
+			return "_error_";
+		}
+		if (archivoXML.revConstraintCol(nombreTabla, nombreColumna)){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "La columna <"+nombreColumna+"> se usa de referencia en una constraint de la base de datos");			
+			return "_error_";
+		}
+		// Una vez revisamos que no se haga referencia a esa tabla se borra de la metadata	
+		ArrayList<String> adentrar = new ArrayList<String> ();		
+		adentrar.add("tabla");
+		Element tElement = (Element)  archivoXML.buscarNodo(adentrar, "nombreTabla", nombreTabla);
+		archivoXML.eliminarNodo(tElement.getElementsByTagName("columna"), "nombreColumna", nombreColumna);
+		return "";
+	}
+	
+	public String visitDropConstraintTB(SQLParser.DropConstraintTBContext ctx){
+		String idC = ctx.ID().getText();
+		if (! archivoXML.eliminarConstraint(nombreTabla, idC)){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "La constraint <"+idC+"> no existe en la tabla <"+nombreTabla+">");			
+			return "_error_";
+		}
+		return "";
+	}
+	
 	public boolean crearCarpeta(String nombre){
 		File f = new File(nombre);		
 		return f.mkdir();

@@ -340,7 +340,7 @@ public class XMLFile {
 		return eTabla;
 	}
 	
-	// No la use, no la probe
+	// Funcion que busa un nodo que hasta el ultimo elemento de adentrar cumpla con que atributo tiene el valor de dato
 	public org.w3c.dom.Node buscarNodo(ArrayList<String> adentrar, String atributo, String dato){
 		ArrayList<NodeList> nodos = lookupNodeList(null, adentrar, 0);
 		org.w3c.dom.Node node = null;
@@ -447,11 +447,27 @@ public class XMLFile {
 				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
 		           Element eElement = (Element) nodo;	
 		           if (igualar.equals(eElement.getElementsByTagName(atributo).item(0).getTextContent())){		        	   
-		        	   rootElement.removeChild(nodo);
+		        	   nodo.getParentNode().removeChild(nodo);
 		        	   createFile();
 		        	   break;
 		           }
 				}
+			}
+		}
+	}
+	
+	// Metodo que borra un nodo del XML
+	// Revisa que el atributo, sea igualar y si lo es borra el nodo
+	public void eliminarNodo(NodeList list, String atributo, String igualar){
+		for (int i = 0; i < list.getLength(); i++) {			
+			org.w3c.dom.Node nodo =  list.item(i);						
+			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+	           Element eElement = (Element) nodo;	
+	           if (igualar.equals(eElement.getElementsByTagName(atributo).item(0).getTextContent())){	
+	        	   nodo.getParentNode().removeChild(nodo);
+	        	   createFile();
+	        	   break;
+	           }
 			}
 		}
 	}
@@ -471,6 +487,78 @@ public class XMLFile {
 		           if (eElement.getElementsByTagName("referencia").item(0).getTextContent().startsWith(nombreTabla+".")){
 		        	   return true;
 		           }
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean revConstraintCol(String nombreTabla, String nombreCol){
+		NodeList listaNodos = rootElement.getElementsByTagName("tabla");
+		for (int x=0; x<listaNodos.getLength(); x++){
+			org.w3c.dom.Node nodoTabla =  listaNodos.item(x);
+			if (nodoTabla.getNodeType() == Node.ELEMENT_NODE){
+				Element tElement = (Element) nodoTabla;
+				NodeList list = tElement.getElementsByTagName("constraints");
+				
+				for (int y=0; y<list.getLength(); y++){
+					org.w3c.dom.Node nodo =  list.item(y);
+					if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+			           Element eElement = (Element) nodo;
+			           if (nombreTabla.equals(tElement.getElementsByTagName("nombreTabla").item(0).getTextContent())){
+				           // Para primary keys de la misma tabla
+			        	   NodeList listPK = eElement.getElementsByTagName("primaryKey");
+				           for (int z=0; z<listPK.getLength(); z++){
+				        	   org.w3c.dom.Node nodoPK =  listPK.item(z);
+								if (nodoPK.getNodeType() == Node.ELEMENT_NODE) {	           
+						           Element eElementPK = (Element) nodoPK;
+					        	   if (eElementPK.getElementsByTagName("idColumna").item(0).getTextContent().equals(nombreCol)){
+						        	   return true;
+						           }
+								}
+				           }
+				           // Para foreign keys de la misma tabla
+				           NodeList listFK = eElement.getElementsByTagName("foreignKey");
+				           for (int z=0; z<listFK.getLength(); z++){
+				        	   org.w3c.dom.Node nodoFK =  listFK.item(z);
+								if (nodoFK.getNodeType() == Node.ELEMENT_NODE) {	           
+						           Element eElementFK = (Element) nodoFK;
+					        	   NodeList listFKInterna = eElementFK.getElementsByTagName("itemFK");
+					        	   for (int w=0; w<listFKInterna.getLength(); w++){
+					        		   org.w3c.dom.Node nodoFKInterno =  listFKInterna.item(w);
+										if (nodoFKInterno.getNodeType() == Node.ELEMENT_NODE) {	           
+								           Element eElementFKInterno = (Element) nodoFKInterno;
+								           if (eElementFKInterno.getElementsByTagName("idColumna").item(0).getTextContent().equals(nombreCol)){
+								        	   return true;
+								           }
+										}
+					        	   }
+								}
+				           }
+						}else{
+							// Foreign key pero como referencia 
+							NodeList listFK = eElement.getElementsByTagName("foreignKey");
+				           for (int z=0; z<listFK.getLength(); z++){
+				        	   org.w3c.dom.Node nodoFK =  listFK.item(z);
+								if (nodoFK.getNodeType() == Node.ELEMENT_NODE) {	           
+						           Element eElementFK = (Element) nodoFK;
+					        	   NodeList listFKInterna = eElementFK.getElementsByTagName("itemFK");
+					        	   for (int w=0; w<listFKInterna.getLength(); w++){
+					        		   org.w3c.dom.Node nodoFKInterno =  listFKInterna.item(w);
+										if (nodoFKInterno.getNodeType() == Node.ELEMENT_NODE) {	           
+								           Element eElementFKInterno = (Element) nodoFKInterno;
+								           if (eElementFKInterno.getElementsByTagName("referencia").item(0).getTextContent().equals(nombreTabla+"."+nombreCol)){
+								        	   return true;
+								           }
+										}
+					        	   }
+								}
+				           }
+						}
+			           
+			          
+			           // Para check		           
+					}
 				}
 			}
 		}
@@ -502,6 +590,50 @@ public class XMLFile {
 			}
 		}
 		return columnas;
+	}
+	
+	public boolean eliminarConstraint(String nombreTabla, String idC){
+		NodeList listaNodos = rootElement.getElementsByTagName("tabla");
+		for (int x=0; x<listaNodos.getLength(); x++){
+			org.w3c.dom.Node nodoTabla =  listaNodos.item(x);
+			if (nodoTabla.getNodeType() == Node.ELEMENT_NODE){
+				Element tElement = (Element) nodoTabla;
+				NodeList list = tElement.getElementsByTagName("constraints");				
+				for (int y=0; y<list.getLength(); y++){
+					org.w3c.dom.Node nodo =  list.item(y);
+					if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+			           Element eElement = (Element) nodo;
+			           if (nombreTabla.equals(tElement.getElementsByTagName("nombreTabla").item(0).getTextContent())){
+				           // Para primary keys de la misma tabla
+			        	   NodeList listPK = eElement.getElementsByTagName("primaryKey");
+				           for (int z=0; z<listPK.getLength(); z++){
+				        	   org.w3c.dom.Node nodoPK =  listPK.item(z);
+								if (nodoPK.getNodeType() == Node.ELEMENT_NODE) {	           
+						           Element eElementPK = (Element) nodoPK;
+					        	   if (eElementPK.getElementsByTagName("nombrePK").item(0).getTextContent().equals(idC)){
+						        	   eliminarNodo(listPK, "nombrePK", idC);
+					        		   return true;
+						           }
+								}
+				           }
+				           // Para foreign keys de la misma tabla
+				           NodeList listFK = eElement.getElementsByTagName("foreignKey");
+				           for (int z=0; z<listFK.getLength(); z++){
+				        	   org.w3c.dom.Node nodoFK =  listFK.item(z);
+								if (nodoFK.getNodeType() == Node.ELEMENT_NODE) {	           
+						           Element eElementFK = (Element) nodoFK;
+						           if (eElementFK.getElementsByTagName("nombreFK").item(0).getTextContent().equals(idC)){
+						        	   eliminarNodo(listFK, "nombreFK", idC);
+					        		   return true;
+						           }
+								}
+				           }
+						}
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	public void cambiarNombre(String nuevo){

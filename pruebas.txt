@@ -42,3 +42,4 @@ create table foco (id int)
 create table linterna(color char(20))
 alter table linterna add column tipo int
 alter table foco add constraint primary key PK (id)
+alter table linterna drop column tipo
