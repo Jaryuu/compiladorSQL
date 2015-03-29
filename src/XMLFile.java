@@ -592,6 +592,45 @@ public class XMLFile {
 		return columnas;
 	}
 	
+	public ArrayList<String> listarConstraintsTabla(String nombreTabla){
+		ArrayList<String> lista = new ArrayList<String>();
+		NodeList listaNodos = rootElement.getElementsByTagName("tabla");
+		for (int x=0; x<listaNodos.getLength(); x++){
+			org.w3c.dom.Node nodoTabla =  listaNodos.item(x);
+			if (nodoTabla.getNodeType() == Node.ELEMENT_NODE){
+				Element tElement = (Element) nodoTabla;
+				NodeList list = tElement.getElementsByTagName("constraints");				
+				for (int y=0; y<list.getLength(); y++){
+					org.w3c.dom.Node nodo =  list.item(y);
+					if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+			           Element eElement = (Element) nodo;
+			           if (nombreTabla.equals(tElement.getElementsByTagName("nombreTabla").item(0).getTextContent())){
+				           // Para primary keys de la misma tabla
+			        	   NodeList listPK = eElement.getElementsByTagName("primaryKey");
+				           for (int z=0; z<listPK.getLength(); z++){
+				        	   org.w3c.dom.Node nodoPK =  listPK.item(z);
+								if (nodoPK.getNodeType() == Node.ELEMENT_NODE) {	           
+						           Element eElementPK = (Element) nodoPK;
+					        	   lista.add(eElementPK.getElementsByTagName("nombrePK").item(0).getTextContent());
+								}
+				           }
+				           // Para foreign keys de la misma tabla
+				           NodeList listFK = eElement.getElementsByTagName("foreignKey");
+				           for (int z=0; z<listFK.getLength(); z++){
+				        	   org.w3c.dom.Node nodoFK =  listFK.item(z);
+								if (nodoFK.getNodeType() == Node.ELEMENT_NODE) {	           
+						           Element eElementFK = (Element) nodoFK;
+						           lista.add(eElementFK.getElementsByTagName("nombreFK").item(0).getTextContent());
+								}
+				           }
+						}
+					}
+				}
+			}
+		}
+		return lista;
+	}
+	
 	public boolean eliminarConstraint(String nombreTabla, String idC){
 		NodeList listaNodos = rootElement.getElementsByTagName("tabla");
 		for (int x=0; x<listaNodos.getLength(); x++){

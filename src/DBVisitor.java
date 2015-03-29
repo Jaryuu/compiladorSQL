@@ -22,7 +22,7 @@ import java.nio.file.Files;
 
 public class DBVisitor extends SQLBaseVisitor<String>{
 	
-	private ArrayList<String> mensajes, columnas, datos, tablaCols;
+	private ArrayList<String> mensajes, columnas, datos, tablaCols, listaConstraints;
 	private XMLFile archivoXML;
 	private String pathBase;
 	private String nombreBD = "", showNombre, nombreTabla;
@@ -293,7 +293,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 	
 	// En datos vienen los ids de las columnas
-	public String visitConstraints(SQLParser.ConstraintsContext ctx){		
+	// En archivoXML esta la metadata de la base de datos en uso
+	public String visitConstraints(SQLParser.ConstraintsContext ctx){	
+		// hacemos un arraylist con los nombres de las constraints
+		listaConstraints = archivoXML.listarConstraintsTabla(nombreTabla);
 		// En nombre tabla llevamos el nombre de la tabla y nombreBD llevamos el nombre de la base de datos
 		for (int y=0; y<ctx.constraint().size(); y++){
 			visit(ctx.constraint(y));
@@ -305,6 +308,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitCPK(SQLParser.CPKContext ctx){
 		ArrayList<String> ids = new ArrayList();
 		String nombreC = ctx.ID(0).getText();
+		if (listaConstraints.contains(nombreC)){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Ya existe la constraint <"+nombreC+">");
+			return "_error_";
+		}
 		for (int y=1; y<ctx.ID().size();y++){
 			// Revisamos que existan todos los ids ya en la tabla, a traves de datos
 			if (! datos.contains(ctx.ID(y).getText())){
@@ -313,6 +320,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 			ids.add(ctx.ID(y).getText());
 		}
+		listaConstraints.add(nombreC);
 		// Los agregamos al constraints
 		archivoXML.agregarConstraint(nombreTabla, "primaryKey", nombreC, ids);
 		return "";
@@ -327,6 +335,12 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		ArrayList<String> colIds = new ArrayList();
 		String nombreC = ctx.ID(0).getText();
+		// Revisamos que no exista una constraint con el mismo nombre
+		if (listaConstraints.contains(nombreC)){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Ya existe la constraint <"+nombreC+">");
+			return "_error_";
+		}
+		
 		for (int y=1; y<ctx.ID().size();y++){
 			// Revisamos que existan las columnas
 			if (! datos.contains(ctx.ID(y).getText())){
@@ -364,6 +378,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 			referencias.add(idTablaRef+"."+idAct);
 		}
+		listaConstraints.add(nombreC);
 		// Los agregamos al constraints
 		archivoXML.agregarConstraint(nombreTabla, "foreignKey", nombreC, colIds, referencias);		
 		return "";
@@ -371,11 +386,17 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	
 	public String visitCCheck(SQLParser.CCheckContext ctx){
 		// Esto se va a guardar check-nombreCheck-stringCheck
-		if (visit(ctx.exp()).equals("_error_")){
+		if (visit(ctx.exp()).equals("_error_")){			
 			return "__error__";
-		}
+		}		
 		String stringCheck = ctx.exp().getText();
 		String nombre = ctx.ID().getText();
+		if (listaConstraints.contains(nombre)){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Ya existe la constraint <"+nombre+">");
+			return "_error_";
+		}else{
+			listaConstraints.add(nombre);
+		}
 		archivoXML.agregarConstraint(nombreTabla, "check", nombre, stringCheck);
 		return "";
 	}
@@ -513,6 +534,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		tablaCols = archivoXML.listarColumnas(nombreTabla);
 		datos.clear();
 		datos = tablaCols;
+		// Listamos las constraints
+		listaConstraints = archivoXML.listarConstraintsTabla(nombreTabla);
 		visit(ctx.constraint());
 		return "";
 	}
