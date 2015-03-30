@@ -179,10 +179,9 @@ MULTILINE_COMMENT
 ID : LETTER (LETTER | DIGIT)* ;
 NUM: UNUM(UNUM)* ;
 UNUM: DIGIT ;
+DATE: UNUM UNUM UNUM UNUM '-' UNUM UNUM '-' UNUM UNUM;
 
-CHAR: '\''((LETTER|DIGIT|| '!' | '"' | '#' | '$' | '%' | '&' | '\'' | '(' | ')' | '*' | '+' 
-| ',' | '-' | '.' | '/' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | '[' | '\\' | ']' | '^' | '_' | '`'| '{' | '|' | '}' | '~' 
-'\t'| '\n' | '\"' |  '\\n' | '\\t' ))* '\'';
+CHAR: '\''~('\r'|'\n'|'\'')* '\'';
 
 
 
@@ -319,7 +318,7 @@ relationalExp
 ;
 
 insert
-:	K_INSERT  K_INTO  ID '(' (ID (',' ID )*)* ')' K_VALUES '(' (formatValue (',' formatValue )*)* ')'
+:	K_INSERT  K_INTO  ID ('(' (ID (',' ID )*)* ')')? K_VALUES '(' (formatValue (',' formatValue )*)* ')'
 ;
 
 formatValue
@@ -338,7 +337,7 @@ decimal
 ;
 
 fecha
-:	UNUM UNUM UNUM UNUM '-' UNUM UNUM '-' UNUM UNUM
+:	DATE
 ;
 
 character

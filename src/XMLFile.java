@@ -576,7 +576,6 @@ public class XMLFile {
 				org.w3c.dom.Node nodo =  list.item(y);
 				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
 		           Element eElement = (Element) nodo;
-		           //Cambio de startswith a equals
 		           if (eElement.getElementsByTagName("nombreTabla").item(0).getTextContent().equals(tabla)){
 		        	   NodeList listaColumnas = eElement.getElementsByTagName("columna");
 		        	   for (int z=0; z<listaColumnas.getLength(); z++){
@@ -592,7 +591,7 @@ public class XMLFile {
 		}
 		return columnas;
 	}
-	
+
 	public ArrayList<ArrayList<String>> listarConstraintsEspecificosTabla(String nombreTabla, String tipoConstraint){
 		ArrayList<ArrayList<String>> lista = new ArrayList<ArrayList<String>>();
 		ArrayList<String> nombreConstraint = new ArrayList<String>();
@@ -655,6 +654,47 @@ public class XMLFile {
 		return lista;
 	}
 	
+	public ArrayList<ArrayList<String>> listarColumnasYTipos(String tabla){
+		ArrayList<ArrayList<String>> columnasTipo = new ArrayList<ArrayList<String>>();
+		ArrayList<String> columnas = new ArrayList<String>();
+		ArrayList<String> tipos = new ArrayList<String>();
+		NodeList list = rootElement.getElementsByTagName("tabla");
+		for (int y=0; y<list.getLength(); y++){
+			org.w3c.dom.Node nodo =  list.item(y);
+			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+	           Element eElement = (Element) nodo;
+	           if (eElement.getElementsByTagName("nombreTabla").item(0).getTextContent().equals(tabla)){
+	        	   NodeList listaColumnas = eElement.getElementsByTagName("columna");
+	        	   for (int z=0; z<listaColumnas.getLength(); z++){
+	        		   org.w3c.dom.Node nodoCol =  listaColumnas.item(z);
+	        		   if (nodo.getNodeType() == Node.ELEMENT_NODE) {
+	        			   Element eElementCol = (Element) nodoCol;
+	        			   columnas.add(eElementCol.getElementsByTagName("nombreColumna").item(0).getTextContent());
+	        			   String tipoDato = eElementCol.getElementsByTagName("tipoDato").item(0).getTextContent();
+	        			   if (tipoDato.equals("char")){
+	        				   tipoDato += "("+eElementCol.getElementsByTagName("tamaño").item(0).getTextContent()+")";
+	        			   }
+	        			   tipos.add(tipoDato);
+	        		   }		    		           
+	        	   }
+	           }
+			}
+		}		
+		columnasTipo.add(columnas);
+		columnasTipo.add(tipos);
+		return columnasTipo;
+	}
+	
+	public ArrayList<String> listarTiposTabla (ArrayList<String> nombreColumnas, String tabla){
+		ArrayList<String> tipos = new ArrayList<String>();
+		ArrayList<ArrayList<String>> temp = listarColumnasYTipos(tabla);
+		for (int i=0; i<nombreColumnas.size(); i++){
+			int indice = temp.get(0).indexOf(nombreColumnas.get(i));
+			tipos.add(temp.get(1).get(indice));
+		}
+		return tipos;
+	}
+	
 	public ArrayList<String> listarConstraintsTabla(String nombreTabla){
 		ArrayList<String> lista = new ArrayList<String>();
 		NodeList listaNodos = rootElement.getElementsByTagName("tabla");
@@ -692,6 +732,44 @@ public class XMLFile {
 			}
 		}
 		return lista;
+	}
+	
+	// Metod que devuelve un arraylist con las columnas que son usadas como primary key
+	public ArrayList<String> listaColsPK(String nombreTabla){
+		ArrayList<String> colsPK = new ArrayList<String>();
+		NodeList listaNodos = rootElement.getElementsByTagName("tabla");
+		for (int x=0; x<listaNodos.getLength(); x++){
+			org.w3c.dom.Node nodoTabla =  listaNodos.item(x);
+			if (nodoTabla.getNodeType() == Node.ELEMENT_NODE){
+				Element tElement = (Element) nodoTabla;
+				NodeList list = tElement.getElementsByTagName("constraints");				
+				for (int y=0; y<list.getLength(); y++){
+					org.w3c.dom.Node nodo =  list.item(y);
+					if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+			           Element eElement = (Element) nodo;
+			           if (nombreTabla.equals(tElement.getElementsByTagName("nombreTabla").item(0).getTextContent())){
+				           // Para primary keys de la misma tabla
+			        	   NodeList listPK = eElement.getElementsByTagName("primaryKey");
+				           for (int z=0; z<listPK.getLength(); z++){
+				        	   org.w3c.dom.Node nodoPK =  listPK.item(z);
+								if (nodoPK.getNodeType() == Node.ELEMENT_NODE) {	           
+						           Element eElementPK = (Element) nodoPK;
+						           NodeList listaIdCols = eElementPK.getElementsByTagName("idColumna");
+					        	   for (int v=0; v<listaIdCols.getLength(); v++){
+					        		   org.w3c.dom.Node nodoIdCols =  listaIdCols.item(v);					        		   
+					        		   if (nodoIdCols.getNodeType() == Node.ELEMENT_NODE){
+					        			   Element eElementIdCols = (Element) nodoIdCols;
+					        			   colsPK.add(eElementIdCols.getTextContent());
+					        		   }
+					        	   }
+								}
+				           }				           
+						}
+					}
+				}
+			}
+		}
+		return colsPK;
 	}
 	
 	public boolean eliminarConstraint(String nombreTabla, String idC){
@@ -737,7 +815,27 @@ public class XMLFile {
 		}
 		return false;
 	}
-
+	
+	public void sumar1Atributo (ArrayList<String> adentrar, String nombreNombrar, String nombre, String atributoMas1){
+		ArrayList<NodeList> listasNodos = lookupNodeList(null,adentrar, 0);
+		for (int x=0; x<listasNodos.size(); x++){
+			NodeList list = listasNodos.get(x);
+			for (int y=0; y<list.getLength(); y++){
+				org.w3c.dom.Node nodo =  list.item(y);
+				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+		           Element eElement = (Element) nodo;
+		           if (eElement.getElementsByTagName(nombreNombrar).item(0).getTextContent().equals(nombre)){
+		        	   String numero = eElement.getElementsByTagName(atributoMas1).item(0).getTextContent();
+		        	   int sumado = Integer.parseInt(numero)+1;
+		        	   eElement.getElementsByTagName(atributoMas1).item(0).setTextContent(String.valueOf(sumado));
+		        	   createFile();
+		        	   break;
+		           }
+				}
+			}
+		}
+	}
+	
 	public void cambiarNombre(String nuevo){
 		NodeList nodes = doc.getElementsByTagName(nombre);
 		for (int i = 0; i < nodes.getLength(); i++) {

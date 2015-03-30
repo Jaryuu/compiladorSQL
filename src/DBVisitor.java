@@ -22,12 +22,13 @@ import java.nio.file.Files;
 
 public class DBVisitor extends SQLBaseVisitor<String>{
 	
-	private ArrayList<String> mensajes, columnas, datos, tablaCols, listaConstraints;
+	private ArrayList<String> mensajes, columnas, datos, tablaCols, listaConstraints, datosTipos;
 	private XMLFile archivoXML;
 	private String pathBase;
 	private String nombreBD = "", showNombre, nombreTabla;
-	private boolean exitoCarpeta;
+	private boolean exitoCarpeta, insertandoDatos;
 	String contenido;	
+	int contadorInserts;
 	ArrayList<ArrayList<String>> data;
 	
 	public ArrayList<String> getColumnas() {
@@ -77,8 +78,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		columnas = new ArrayList<String>();
 		datos = new ArrayList<String>();
 		data = new ArrayList<ArrayList<String>>();
+		datosTipos = new ArrayList<String>();
 		boolean success = crearCarpeta("BaseDeDatos");
 		pathBase = "BaseDeDatos\\";		
+		insertandoDatos = false;
+		contadorInserts=0;
 		if (!success) {
 		    System.out.println("Ya existe la carpeta");
 		    archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
@@ -86,7 +90,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 		}
 		
-		return super.visitTodo(ctx);
+		super.visitTodo(ctx);
+		if (contadorInserts>0){
+			mensajes.add("INSERT ("+contadorInserts+") con exito");
+		}
+		return "";
 		
 	}
 	
@@ -273,7 +281,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				nombres.add(idActual);
 				// Visitamos el tipo
 				String tipoActual = visit(ctx.tipo(x-1));
-				tipoDato.add(tipoActual);
+				tipoDato.add(tipoActual.toLowerCase());
 			}		
 			datos.clear();
 			// Para poder tener los nombres en una lista visible para todos los metodos
@@ -522,7 +530,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		ArrayList<String> tipoDato = new ArrayList<String>();
 		informacion.add(nombreColumna);
 		String tipoActual = visit(ctx.tipo());	
-		tipoDato.add(tipoActual);
+		tipoDato.add(tipoActual.toLowerCase());
 		archivoXML.agregarListaColumnas(nombreTabla, informacion, tipoDato);
 		// Visitamos las constraints
 		visit(ctx.constraints());
@@ -567,7 +575,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		return "";
 	}
-	
+
 	public String visitShowColums(SQLParser.ShowColumsContext ctx){
 		String pathCarpeta = pathBase+"\\"+nombreBD;
 		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
@@ -627,11 +635,202 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		return "";
 	}
 	
+	public String visitData(SQLParser.DataContext ctx){		
+		// Se revisa que ya se haya elegido una base de datos a utilizar
+		if(nombreBD.equals("")){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
+			return "_error_";
+		}else{			
+			return super.visitData(ctx);
+		}
+	}
+	
+	public String visitInsert(SQLParser.InsertContext ctx){
+		nombreTabla = ctx.ID(0).getText();
+		String pathCarpeta = pathBase+"\\"+nombreBD;
+		
+		// Revisamos que exista la tabla
+		File f = new File(pathCarpeta+"\\"+nombreTabla+".XML");
+		if (! f.exists()){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+nombreTabla+">");
+			return "_error_";
+		}
+		
+		// Colocamos en una lista los nombres de las columnas		
+		columnas=new ArrayList<String>();
+		ArrayList<String> columnasReales = new ArrayList<String>();
+		ArrayList<String> tiposReales  = new ArrayList<String>();
+		ArrayList<ArrayList<String>> temporal = new ArrayList<ArrayList<String>>();
+		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+		if (ctx.ID().size()>1){
+			for (int x=1; x<ctx.ID().size(); x++){
+				// Revisamos que exista la columna mencionada
+				if (archivoXML.existeCol(nombreTabla, ctx.ID(x).getText())){
+					// Revisamos que no se repita la columna
+					if (columnas.contains(ctx.ID(x).getText())){
+						agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Se menciona dos veces la columna <"+ctx.ID(x).getText()+">");
+						return "_error_";
+					}
+					columnas.add(ctx.ID(x).getText());					
+				}else{
+					agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la columna <"+ctx.ID(x).getText()+">");
+					return "_error_";
+				}				
+			}			
+			// Se colocan los tipos de las columnas
+			columnasReales = archivoXML.listarColumnas(nombreTabla);				
+			tiposReales = archivoXML.listarTiposTabla(columnas, nombreTabla);
+		}else{
+			// Si no se especifican las columnas se colocan todas las columnas
+			temporal = archivoXML.listarColumnasYTipos(nombreTabla);	
+			columnas = temporal.get(0);
+			tiposReales = temporal.get(1);
+		}		
+		// En datos colocamos los valores y en datosTipos colocamos el tipo de cada dato
+		datos = new ArrayList<String>();
+		datosTipos =new ArrayList<String>();
+		insertandoDatos = true;
+		for (int x=0; x<ctx.formatValue().size(); x++){
+			// Aqui se llena datos y datosTipos
+			visit(ctx.formatValue(x));
+		}
+		insertandoDatos = false;			
+		
+		// Comprobar que el tipo de la columna sea el mismo que se va a agregar
+		int x=0;
+		while (x<datosTipos.size() && x<tiposReales.size()){
+			String tipoAgregar = datosTipos.get(x);
+			String tipoReal = tiposReales.get(x);	
+			if (tipoAgregar.startsWith("char(") && tipoReal.startsWith("char(")){
+				if (tamanoChar(tipoAgregar)>tamanoChar(tipoReal)){
+					// Si el dato a agregar pasa el tamano maximo hay error
+					agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La cantidad de caracters es mayor a la permitida");
+					return "_error_";
+				}
+			}else if(tipoAgregar.equals("float") && tipoReal.equals("int")){
+				// Se puede hacer conversion automatica, float a int
+				datos.set(x, floatAInt(datos.get(x)));
+				datosTipos.set(x, "int");
+			}else if (tipoAgregar.equals("int") && tipoReal.equals("float")){
+				// Conversion automatica de int a float
+				datos.set(x, intAFloat(datos.get(x)));
+				datosTipos.set(x, "float");
+			}else if(! tipoAgregar.equals(tipoReal)){
+				// Si son diferentes los tipos y no son char(NUM) hay error
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La columna <"+columnas.get(x)+"> no es de tipo: "+tipoAgregar);
+				return "_error_";
+			}
+			x++;
+		}	
+		
+		// Revisamos las constraints
+		// La primary key no puede ser null
+		ArrayList<String> idColsPK = archivoXML.listaColsPK(nombreTabla);		
+		datos = organizarDatos(columnasReales, columnas, datos);
+		for (x=0; x<idColsPK.size(); x++){
+			String idColPk = idColsPK.get(x);
+			int indiceCol = columnasReales.indexOf(idColPk);
+			if (datos.get(indiceCol).equals("null")){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La columna <"+idColPk+"> no puede ser null");
+				return "_error_";
+			}
+		}
+		
+		// Le sumamos uno a la cantidad de registros
+		ArrayList<String> adentrar = new ArrayList<String>();
+		adentrar.add("tabla");
+		archivoXML.sumar1Atributo(adentrar, "nombreTabla", nombreTabla, "cantidadRegistros");
+		// Ahora insertamos al archivo de la tabla la tupla
+		archivoXML = new XMLFile(nombreTabla, pathCarpeta);
+		archivoXML.add("tupla", columnasReales, datos);
+		contadorInserts++;
+		return "";
+	}
+	
+	public String visitFormatValue(SQLParser.FormatValueContext ctx){
+		return super.visitFormatValue(ctx);		
+	}
+	
+	public String visitEntero(SQLParser.EnteroContext ctx){
+		// Si se estan insertando datos se coloca en datosTipos el tipo del dato
+		if (insertandoDatos){
+			datosTipos.add("int");
+			datos.add(ctx.getText());
+		}
+		return "int";
+	}
+	
+	public String visitDecimal(SQLParser.DecimalContext ctx){
+		// Si se estan insertando datos se coloca en datosTipos el tipo del dato
+		if (insertandoDatos){
+			datosTipos.add("float");
+			datos.add(ctx.getText());
+		}
+		return "float";
+	}
+	
+	public String visitFecha(SQLParser.FechaContext ctx){
+		// Si se estan insertando datos se coloca en datosTipos el tipo del dato
+		if (insertandoDatos){
+			datosTipos.add("date");
+			datos.add(ctx.getText());
+		}
+		return "date";
+	}
+	
+	public String visitCharacter(SQLParser.CharacterContext ctx){
+		// Si se estan insertando datos se coloca en datosTipos el tipo del dato
+		if (insertandoDatos){
+			String datoIng =ctx.getText(); 
+			int tamano = datoIng.length() - 2;
+			datosTipos.add("char("+tamano+")");			
+			datos.add(datoIng);
+		}
+		return "char";
+	}
+	
+	public int tamanoChar(String texto){
+		String numero = texto.substring(5, texto.length()-1);
+		return Integer.parseInt(numero);
+	}
+	
+	public String floatAInt(String floatDato){
+		String numero  = "";
+		for (int i=0; i<floatDato.length(); i++){
+			if (floatDato.charAt(i) != '.'){
+				numero += floatDato.charAt(i);
+			}else{
+				break;
+			}
+		}
+		return numero;
+	}
+	
+	public String intAFloat(String intDato){			
+		return intDato+".0";
+	}
+
+	
 	public boolean crearCarpeta(String nombre){
 		File f = new File(nombre);		
 		return f.mkdir();
 	}
 	
+	public ArrayList<String> organizarDatos(ArrayList<String> columnasReales, ArrayList<String> columnasInsertar, ArrayList<String> datosInsertar){
+		ArrayList<String> datosOrdenados = new ArrayList<String>();
+		// Necesitamos colocar los datos que ya se tiene en el orden de las columnasReales
+		// Si no esta la columna se pone null
+		for (int i=0; i<columnasReales.size(); i++){
+			int indice = columnasInsertar.indexOf(columnasReales.get(i));
+			// Si es -1 es que no lo encontro
+			if (indice == -1){
+				datosOrdenados.add("null");
+			}else{
+				datosOrdenados.add(datosInsertar.get(indice));
+			}
+		}
+		return datosOrdenados;
+	}
 	
 	public static void deleteFolder(File folder) {
 	    File[] files = folder.listFiles();

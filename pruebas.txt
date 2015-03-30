@@ -35,6 +35,7 @@ create table foco (id int)
 create table linterna(color char(20))
 alter table linterna add column tipo int
 alter table linterna add column tamano char(8) constraint primary key PK (tipo), constraint foreign key FK (tipo) references foco (id)
+alter table linterna drop column tipo
 
 create database pruebaAddCol
 use database  pruebaAddCol
@@ -43,3 +44,20 @@ create table linterna(color char(20))
 alter table linterna add column tipo int
 alter table foco add constraint primary key PK (id)
 alter table linterna drop column tipo
+
+create database pruebaInsert
+use database pruebaInsert
+create table cliente(id int, nombre char(50), nacimiento date)
+insert into cliente (nombre) values (200)
+
+use database pruebaInsert
+insert into cliente (nombre) values (' create table cliente(id int, nombre char(50), nacim')
+
+use database pruebaInsert
+insert into cliente(id) values (2.0)
+
+use database pruebaInsert
+insert into cliente(datoFloat) values (2)
+
+use database pruebaInsert
+insert into cliente(nombre, nacimiento, datoFloat, id) values ('Richie', 1995-03-05, 1.0, 1)
