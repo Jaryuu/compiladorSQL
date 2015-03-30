@@ -568,6 +568,65 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		return "";
 	}
 	
+	public String visitShowColums(SQLParser.ShowColumsContext ctx){
+		String pathCarpeta = pathBase+"\\"+nombreBD;
+		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+		nombreTabla = ctx.ID().getText();
+		columnas.clear();
+		data.clear();
+		columnas.add("nombreColumna");
+		columnas.add("tipoDato");
+		columnas.add("primaryKey");
+		columnas.add("foreignKey");
+		columnas.add("referenciaFK");
+		columnas.add("check");
+		columnas.add("expresion");
+		tablaCols = archivoXML.listarColumnas(nombreTabla);
+		ArrayList<ArrayList<String>> listaConstraintsPK = archivoXML.listarConstraintsEspecificosTabla(nombreTabla,"primaryKey");
+		ArrayList<ArrayList<String>> listaConstraintsFK = archivoXML.listarConstraintsEspecificosTabla(nombreTabla,"foreignKey");
+		ArrayList<ArrayList<String>> listaConstraintsCHK = archivoXML.listarConstraintsEspecificosTabla(nombreTabla,"check");
+		//Agregar data
+		for (int i=0;i<tablaCols.size();i++){
+			//Agregar PK si es
+			ArrayList<String> tupla = new ArrayList<String>();
+			String tipoDato = archivoXML.tipoCol(nombreTabla,tablaCols.get(i));
+			String PK="";
+			String FK="";
+			String FKref="";
+			String check="";
+			String expresion="";
+			//Primary keys
+			for (int j=0;j<listaConstraintsPK.get(1).size();j++){
+				if(tablaCols.get(i).equals(listaConstraintsPK.get(1).get(j))){
+					PK = listaConstraintsPK.get(0).get(j);
+				}
+			}
+			//Foreign Keys
+			for (int j=0;j<listaConstraintsFK.get(1).size();j++){
+				if(tablaCols.get(i).equals(listaConstraintsFK.get(1).get(j))){
+					FK = listaConstraintsFK.get(0).get(j);
+					FKref = listaConstraintsFK.get(2).get(j);
+				}
+			}
+			//Check
+			for (int j=0;j<listaConstraintsCHK.get(1).size();j++){
+				if(listaConstraintsCHK.get(1).get(j).contains(tablaCols.get(i))){
+					check = listaConstraintsCHK.get(0).get(j);
+					expresion = listaConstraintsCHK.get(1).get(j);
+				}
+			}
+			tupla.add(tablaCols.get(i));
+			tupla.add(tipoDato);
+			tupla.add(PK);
+			tupla.add(FK);
+			tupla.add(FKref);
+			tupla.add(check);
+			tupla.add(expresion);
+			data.add(tupla);
+		}
+		return "";
+	}
+	
 	public boolean crearCarpeta(String nombre){
 		File f = new File(nombre);		
 		return f.mkdir();
