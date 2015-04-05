@@ -1,11 +1,17 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+//import java.io.BufferedReader;
+//import java.io.File;
+//import java.io.FileReader;
+//import java.io.IOException;
+import java.io.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.xml.soap.Node;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -27,10 +33,47 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	private String pathBase;
 	private String nombreBD = "", showNombre, nombreTabla;
 	private boolean exitoCarpeta, insertandoDatos;
+	private boolean evaluandoExp = false;
 	String contenido;	
-	int contadorInserts;
+	int contadorInserts, contadorUpdates, contadorDeletes;
 	ArrayList<ArrayList<String>> data;
+	SQLParser.ExpContext contextExp;
+	ArrayList<String> expIds;
 	
+	
+	
+	public ArrayList<String> getExpIds() {
+		return expIds;
+	}
+
+	public void setExpIds(ArrayList<String> expIds) {
+		this.expIds = expIds;
+	}
+
+	public String getNombreTabla() {
+		return nombreTabla;
+	}
+
+	public void setNombreTabla(String nombreTabla) {
+		this.nombreTabla = nombreTabla;
+	}
+
+	public String getPathBase() {
+		return pathBase;
+	}
+
+	public void setPathBase(String pathBase) {
+		this.pathBase = pathBase;
+	}
+
+	public SQLParser.ExpContext getContextExp() {
+		return contextExp;
+	}
+
+	public void setContextExp(SQLParser.ExpContext contextExp) {
+		this.contextExp = contextExp;
+	}
+
 	public ArrayList<String> getColumnas() {
 		return columnas;
 	}
@@ -83,6 +126,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		pathBase = "BaseDeDatos\\";		
 		insertandoDatos = false;
 		contadorInserts=0;
+		contadorUpdates=0;
 		if (!success) {
 		    System.out.println("Ya existe la carpeta");
 		    archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
@@ -93,6 +137,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		super.visitTodo(ctx);
 		if (contadorInserts>0){
 			mensajes.add("INSERT ("+contadorInserts+") con exito");
+		}
+		
+		if (contadorUpdates>0){
+			mensajes.add("UPDATE ("+contadorUpdates+") con exito");
 		}
 		return "";
 		
@@ -207,7 +255,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			archivoXML = new XMLFile("Metadata."+nombreBD, pathBase+"\\"+nombreBD+"\\");
 			NodeList list = archivoXML.getRootElement().getElementsByTagName("tabla");
 			org.w3c.dom.Node nodo;
-			ArrayList<String> nuevoDato;
+//			ArrayList<String> nuevoDato;
 			for (int i = 0; i < list.getLength(); i++) {
 				nodo =  list.item(i);
 				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
@@ -406,17 +454,243 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			listaConstraints.add(nombre);
 		}
 		archivoXML.agregarConstraint(nombreTabla, "check", nombre, stringCheck);
+		
 		return "";
 	}
 	
 	public String visitExp(SQLParser.ExpContext ctx){
-		return "";
+		contextExp = ctx;
+		expIds = new ArrayList<String>();
+		return visit(ctx.expr());
+		
 	}
+	
+	
+	
+	//Todos los exp (revision de tipo)
+	
+	@Override
+	public String visitExpGL(SQLParser.ExpGLContext ctx) {
+		String returnExp4 = visit(ctx.exp4());
+		String returnExpUni = visit(ctx.unifactor());
+		if (evaluandoExp){
+			
+			if (ctx.relationalExpGL().getText().equals("<")){
+				if (returnExp4.compareTo(returnExpUni)<0){
+					return "true";
+				}
+				else{
+					return "false";
+				}
+			}
+			else if (ctx.relationalExpGL().getText().equals(">")){
+				if (returnExp4.compareTo(returnExpUni)>0){
+					return "true";
+				}
+				else{
+					return "false";
+				}
+			}
+			else if (ctx.relationalExpGL().getText().equals("<=")){
+				if (returnExp4.compareTo(returnExpUni)<=0){
+					return "true";
+				}
+				else{
+					return "false";
+				}
+			}
+			else if (ctx.relationalExpGL().getText().equals(">=")){
+				if (returnExp4.compareTo(returnExpUni)>=0){
+					return "true";
+				}
+				else{
+					return "false";
+				}
+			}
+			return "";
+		}
+		else{
+			if (returnExp4.equals(returnExpUni)){
+				return "boolean";
+			}
+			else{
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
+				return "_error_";
+			}
+		}
+		
+		
+	}
+
+	@Override
+	public String visitExpNotOr(SQLParser.ExpNotOrContext ctx) {
+		return super.visitExpNotOr(ctx);
+	}
+
+	@Override
+	public String visitExpNotGl(SQLParser.ExpNotGlContext ctx) {
+		return super.visitExpNotGl(ctx);
+	}
+
+	@Override
+	public String visitExpNotEq(SQLParser.ExpNotEqContext ctx) {
+		return super.visitExpNotEq(ctx);
+	}
+
+	@Override
+	public String visitExpOr(SQLParser.ExpOrContext ctx) {
+		String returnExp2 = visit(ctx.exp2());
+		String returnExp3 = visit(ctx.exp3());
+		if(evaluandoExp){
+			if (returnExp2.equals("true") || returnExp3.equals("true")){
+				return "true";
+			}
+			else{
+				return "false";
+			}
+		}
+		else{
+			if (returnExp2.equals("boolean") && returnExp3.equals("boolean")){
+				return "boolean";
+			}
+			else{
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
+				return "_error_";
+			}
+		}
+		
+	}
+
+	@Override
+	public String visitExpNotAnd(SQLParser.ExpNotAndContext ctx) {
+		return super.visitExpNotAnd(ctx);
+	}
+
+	@Override
+	public String visitExpID(SQLParser.ExpIDContext ctx) {
+		String pathCarpeta = pathBase+"\\"+nombreBD;
+		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+		//Revisar tipo del ID
+		String colType = "";
+		if(ctx.ID().size()==1){
+			if (ctx.ID(0).getText().equals("null")){
+				return "null";
+			}
+			colType = archivoXML.tipoCol(nombreTabla, ctx.ID(0).getText());
+			if(colType.startsWith("char")){
+				colType = "char";
+			}
+			expIds.add(ctx.ID(0).getText());
+		}
+		else{
+			colType = archivoXML.tipoCol(ctx.ID(1).getText(), ctx.ID(0).getText());
+			expIds.add(ctx.ID(0).getText()+"."+ctx.ID(0).getText());
+			if(colType.startsWith("char")){
+				colType = "char";
+			}
+		}
+		if (colType.equals("None")){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "la columna <"+ctx.getText()+"> no existe");
+			return "_error_";
+		}
+		else{
+			return colType;
+		}
+		
+	}
+
+	@Override
+	public String visitExpAnd(SQLParser.ExpAndContext ctx) {
+		String returnExpr = visit(ctx.expr());
+		String returnExp2 = visit(ctx.exp2());
+		if(evaluandoExp){
+			if (returnExpr.equals("true") && returnExp2.equals("true")){
+				return "true";
+			}
+			else{
+				return "false";
+			}
+		}
+		else{
+			if (returnExpr.equals("boolean") && returnExp2.equals("boolean")){
+				return "";
+			}
+			else{
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
+				return "_error_";
+			}
+		}
+		
+	}
+
+	@Override
+	public String visitExpNotFactor(SQLParser.ExpNotFactorContext ctx) {
+		String returnTypeFactor = visit(ctx.factor());
+		if (evaluandoExp){
+			return "-"+returnTypeFactor;
+		}
+		else{
+			if (returnTypeFactor.equals("int") || returnTypeFactor.equals("float")){
+				return returnTypeFactor;
+			}
+			else{
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no tiene tipo int o float");
+				return "_error_";
+			}
+		}
+		
+	}
+
+	@Override
+	public String visitExpEq(SQLParser.ExpEqContext ctx) {
+		String returnExp3 = visit(ctx.exp3());
+		String returnExp4 = visit(ctx.exp4());
+		
+		if(evaluandoExp){
+			if (ctx.relationalExpEq().getText().equals("=")){
+				return String.valueOf(returnExp3.equals(returnExp4));
+			}
+			else{
+				return String.valueOf(!returnExp3.equals(returnExp4));
+			}
+		}
+		
+		else{
+			if (returnExp3.equals(returnExp4) || returnExp4.equals("null")){
+				return "boolean";
+			}
+			else{
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
+				return "_error_";
+			}
+		}
+		
+		
+	}
+
+	@Override
+	public String visitExpFactor(SQLParser.ExpFactorContext ctx) {
+		return super.visitExpFactor(ctx);
+	}
+
+	@Override
+	public String visitExpParentheses(SQLParser.ExpParenthesesContext ctx) {
+		return visit(ctx.exp());
+	}
+
+	@Override
+	public String visitExpLiteral(SQLParser.ExpLiteralContext ctx) {
+		return super.visitExpLiteral(ctx);
+	}
+	
+	
+	//hasta aqui exp//
 	
 	public String visitReferences(SQLParser.ReferencesContext ctx){
 		return super.visitReferences(ctx);
 	}
 	
+
 	public String visitTipoFloat(SQLParser.TipoFloatContext ctx) {
 		return "float";
 	}
@@ -589,49 +863,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		columnas.add("referenciaFK");
 		columnas.add("check");
 		columnas.add("expresion");
-		tablaCols = archivoXML.listarColumnas(nombreTabla);
-		ArrayList<ArrayList<String>> listaConstraintsPK = archivoXML.listarConstraintsEspecificosTabla(nombreTabla,"primaryKey");
-		ArrayList<ArrayList<String>> listaConstraintsFK = archivoXML.listarConstraintsEspecificosTabla(nombreTabla,"foreignKey");
-		ArrayList<ArrayList<String>> listaConstraintsCHK = archivoXML.listarConstraintsEspecificosTabla(nombreTabla,"check");
-		//Agregar data
-		for (int i=0;i<tablaCols.size();i++){
-			//Agregar PK si es
-			ArrayList<String> tupla = new ArrayList<String>();
-			String tipoDato = archivoXML.tipoCol(nombreTabla,tablaCols.get(i));
-			String PK="";
-			String FK="";
-			String FKref="";
-			String check="";
-			String expresion="";
-			//Primary keys
-			for (int j=0;j<listaConstraintsPK.get(1).size();j++){
-				if(tablaCols.get(i).equals(listaConstraintsPK.get(1).get(j))){
-					PK = listaConstraintsPK.get(0).get(j);
-				}
-			}
-			//Foreign Keys
-			for (int j=0;j<listaConstraintsFK.get(1).size();j++){
-				if(tablaCols.get(i).equals(listaConstraintsFK.get(1).get(j))){
-					FK = listaConstraintsFK.get(0).get(j);
-					FKref = listaConstraintsFK.get(2).get(j);
-				}
-			}
-			//Check
-			for (int j=0;j<listaConstraintsCHK.get(1).size();j++){
-				if(listaConstraintsCHK.get(1).get(j).contains(tablaCols.get(i))){
-					check = listaConstraintsCHK.get(0).get(j);
-					expresion = listaConstraintsCHK.get(1).get(j);
-				}
-			}
-			tupla.add(tablaCols.get(i));
-			tupla.add(tipoDato);
-			tupla.add(PK);
-			tupla.add(FK);
-			tupla.add(FKref);
-			tupla.add(check);
-			tupla.add(expresion);
-			data.add(tupla);
-		}
+		data = getTableMetadata();
 		return "";
 	}
 	
@@ -662,6 +894,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		ArrayList<String> tiposReales  = new ArrayList<String>();
 		ArrayList<ArrayList<String>> temporal = new ArrayList<ArrayList<String>>();
 		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+		
+		
 		if (ctx.ID().size()>1){
 			for (int x=1; x<ctx.ID().size(); x++){
 				// Revisamos que exista la columna mencionada
@@ -683,9 +917,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}else{
 			// Si no se especifican las columnas se colocan todas las columnas
 			temporal = archivoXML.listarColumnasYTipos(nombreTabla);	
+			columnasReales = archivoXML.listarColumnas(nombreTabla); //TST
 			columnas = temporal.get(0);
 			tiposReales = temporal.get(1);
 		}		
+
 		// En datos colocamos los valores y en datosTipos colocamos el tipo de cada dato
 		datos = new ArrayList<String>();
 		datosTipos =new ArrayList<String>();
@@ -723,10 +959,14 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			x++;
 		}	
 		
+
 		// Revisamos las constraints
 		// La primary key no puede ser null
+		ArrayList<ArrayList<String>> metaTabla = getTableMetadata();
+		XMLFile archivoXMLTabla = new XMLFile(nombreTabla, pathCarpeta);
 		ArrayList<String> idColsPK = archivoXML.listaColsPK(nombreTabla);		
 		datos = organizarDatos(columnasReales, columnas, datos);
+		ArrayList<String> tuplaPK = new ArrayList<String>();
 		for (x=0; x<idColsPK.size(); x++){
 			String idColPk = idColsPK.get(x);
 			int indiceCol = columnasReales.indexOf(idColPk);
@@ -734,7 +974,99 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La columna <"+idColPk+"> no puede ser null");
 				return "_error_";
 			}
+			else{
+				tuplaPK.add(datos.get(indiceCol));
+			}
 		}
+
+		//Revisar que el PK sea unico
+		ArrayList<ArrayList<String>> tmpQuery = archivoXMLTabla.queryColumns(idColsPK);
+		if(tmpQuery.contains(tuplaPK)){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Las columnas <"+idColsPK.toString()+"> deben tener valores unicos, la llave primaria <"+tuplaPK.toString()+"> ya existe");
+			return "_error_";
+		}
+		
+		//Revisar llaves foraneas  (0,3,4 en metaTabla)
+		ArrayList<String> idColsFK = new ArrayList<String>();
+		for(int i=0;i<columnasReales.size();i++){
+			for(int j=0;j<metaTabla.size();j++){
+				//Verificar si esa columna tiene FK
+				if (columnasReales.get(i).equals(metaTabla.get(j).get(0)) && !metaTabla.get(j).get(4).equals("")){
+					String col = columnasReales.get(i);
+					int indiceCol = columnasReales.indexOf(col);
+					String dato = datos.get(indiceCol);
+					String referenciaCompleta = metaTabla.get(j).get(4);
+					String[] ref = referenciaCompleta.split("\\.");
+					String refTabla = ref[0];
+					ArrayList<String> refColumna = new ArrayList<String>();
+					refColumna.add(ref[1]);
+					XMLFile archivoXMLRef = new XMLFile(refTabla, pathCarpeta);
+					ArrayList<ArrayList<String>> tmpQueryFK = archivoXMLRef.queryColumns(refColumna);
+					if (!tmpQueryFK.contains(dato)){
+						agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+metaTabla.get(j).get(4)+"> no contiene el valor <"+dato+">");
+						return "_error_";
+					}
+					
+				}
+			}
+		}
+		
+		//CHECK 0,5,6 en metaTabla
+		ArrayList<String> checkExpressions = new ArrayList<String>();
+		
+		for (int i=0;i<metaTabla.size();i++){
+			if (!checkExpressions.contains(metaTabla.get(i).get(6)) && !metaTabla.get(i).get(6).equals("")){
+				checkExpressions.add(metaTabla.get(i).get(6));
+			}
+		}
+		
+		evaluandoExp=true;
+		
+		ArrayList<String> sortedDatos = new ArrayList<String>();
+		ArrayList<String> sortedColumns = new ArrayList<String>();
+		int min=0;
+		for (int k=0;k<columnasReales.size();k++){
+			if(columnasReales.get(k).length()<=min){
+				sortedColumns.add(columnasReales.get(k));
+				min=columnasReales.get(k).length();
+			}
+			else{
+				sortedColumns.add(0,columnasReales.get(k));
+			}
+		}
+		
+		for (int k=0;k<sortedColumns.size();k++){
+			sortedDatos.add(datos.get(columnasReales.indexOf(sortedColumns.get(k))));
+		}
+		
+		
+		for(int j=0;j<checkExpressions.size();j++){
+			String chexp =  checkExpressions.get(j);
+			for (int k=0;k<sortedColumns.size();k++){
+				if (chexp.contains(sortedColumns.get(k))){
+					
+					chexp = chexp.replace(sortedColumns.get(k), sortedDatos.get(k));
+				}
+			}
+			
+			ANTLRInputStream input = new ANTLRInputStream(chexp);
+			SQLLexer lexer = new SQLLexer(input);
+			CommonTokenStream tokens = new CommonTokenStream(lexer);
+			SQLParser parser = new SQLParser(tokens);
+			ParseTree tree = parser.exp();  // parse exp; start a program
+			DBVisitor visitor = new DBVisitor();
+			visitor.setNombreBD(nombreBD);
+			visitor.setPathBase(pathBase);
+			visitor.setNombreTabla(nombreTabla);
+			visitor.visit(tree);
+			SQLParser.ExpContext checkContext = visitor.getContextExp();
+			if (visitExp(checkContext).equals("false")){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+checkContext.getText()+"> no cumple la condicion <"+checkExpressions.get(j)+">");
+				return "_error_";
+			}
+		}
+		evaluandoExp=false;
+		
 		
 		// Le sumamos uno a la cantidad de registros
 		ArrayList<String> adentrar = new ArrayList<String>();
@@ -744,6 +1076,255 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		archivoXML = new XMLFile(nombreTabla, pathCarpeta);
 		archivoXML.add("tupla", columnasReales, datos);
 		contadorInserts++;
+		return "";
+	}
+	
+	
+	public String visitUpdate(SQLParser.UpdateContext ctx){
+		nombreTabla = ctx.ID().getText();
+		String pathCarpeta = pathBase+"\\"+nombreBD;
+		
+		File f = new File(pathCarpeta+"\\"+nombreTabla+".XML");
+		if (! f.exists()){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+nombreTabla+">");
+			return "_error_";
+		}
+		
+		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);		
+		
+		ArrayList<String> columnasAsignacion = new ArrayList<String>();
+		ArrayList<String> columnasTabla = archivoXML.listarColumnas(nombreTabla);
+		
+		datos = new ArrayList<String>();
+		datosTipos =new ArrayList<String>();
+		
+		insertandoDatos = true;
+		for(int i = 0; i<ctx.asignacion().size(); i++){
+			if(!columnasTabla.contains(ctx.asignacion().get(i).ID().getText())){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+ctx.asignacion().get(i).ID().getText()+"> no es una columna de la tabla <"+nombreTabla+">");
+				return "_error_";
+			}
+			if(columnasAsignacion.contains(ctx.asignacion().get(i).ID().getText())){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+ctx.asignacion().get(i).ID().getText()+"> la columna no se puede especificar dos veces");
+				return "_error_";
+			}
+			columnasAsignacion.add(ctx.asignacion().get(i).ID().getText());
+			visit(ctx.asignacion().get(i).literal().formatValue());
+		}
+		
+		insertandoDatos = false;			
+		
+		ArrayList<String> tiposReales = archivoXML.listarTiposTabla(columnasAsignacion, nombreTabla);
+		
+		// Comprobar que el tipo de la columna sea el mismo que se va a agregar
+		int x=0;
+		while (x<datosTipos.size() && x<tiposReales.size()){
+			String tipoAgregar = datosTipos.get(x);
+			String tipoReal = tiposReales.get(x);	
+			if (tipoAgregar.startsWith("char(") && tipoReal.startsWith("char(")){
+				if (tamanoChar(tipoAgregar)>tamanoChar(tipoReal)){
+					// Si el dato a agregar pasa el tamano maximo hay error
+					agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La cantidad de caracters es mayor a la permitida");
+					return "_error_";
+				}
+			}else if(tipoAgregar.equals("float") && tipoReal.equals("int")){
+				// Se puede hacer conversion automatica, float a int
+				datos.set(x, floatAInt(datos.get(x)));
+				datosTipos.set(x, "int");
+			}else if (tipoAgregar.equals("int") && tipoReal.equals("float")){
+				// Conversion automatica de int a float
+				datos.set(x, intAFloat(datos.get(x)));
+				datosTipos.set(x, "float");
+			}else if(! tipoAgregar.equals(tipoReal)){
+				// Si son diferentes los tipos y no son char(NUM) hay error
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La columna <"+columnasAsignacion.get(x)+"> no es de tipo: "+tipoAgregar);
+				return "_error_";
+			}
+			x++;
+		}
+		
+		
+		// Revisamos las constraints
+		// La primary key no puede ser null
+		ArrayList<ArrayList<String>> metaTabla = getTableMetadata();
+		XMLFile archivoXMLTabla = new XMLFile(nombreTabla, pathCarpeta);
+		ArrayList<String> idColsPK = archivoXML.listaColsPK(nombreTabla);		
+		datos = organizarDatos(columnasAsignacion, columnasAsignacion, datos);
+		ArrayList<String> tuplaPK = new ArrayList<String>();
+		for (x=0; x<idColsPK.size(); x++){
+			String idColPk = idColsPK.get(x);
+			if (columnasAsignacion.contains(idColPk)){
+				int indiceCol = columnasAsignacion.indexOf(idColPk);
+				if (datos.get(indiceCol).equals("null")){
+					agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La columna <"+idColPk+"> no puede ser null");
+					return "_error_";
+				}
+				else{
+					tuplaPK.add(datos.get(indiceCol));
+				}
+			}
+			
+		}
+
+		//Revisar que el PK sea unico
+		ArrayList<ArrayList<String>> tmpQuery = archivoXMLTabla.queryColumns(idColsPK);
+		if(tmpQuery.contains(tuplaPK)){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Las columnas <"+idColsPK.toString()+"> deben tener valores unicos, la llave primaria <"+tuplaPK.toString()+"> ya existe");
+			return "_error_";
+		}
+		
+		//Revisar llaves foraneas  (0,3,4 en metaTabla)
+		for(int i=0;i<columnasAsignacion.size();i++){
+			for(int j=0;j<metaTabla.size();j++){
+				//Verificar si esa columna tiene FK
+				if (columnasAsignacion.get(i).equals(metaTabla.get(j).get(0)) && !metaTabla.get(j).get(4).equals("")){
+					String col = columnasAsignacion.get(i);
+					int indiceCol = columnasAsignacion.indexOf(col);
+					String dato = datos.get(indiceCol);
+					String referenciaCompleta = metaTabla.get(j).get(4);
+					String[] ref = referenciaCompleta.split("\\.");
+					String refTabla = ref[0];
+					ArrayList<String> refColumna = new ArrayList<String>();
+					refColumna.add(ref[1]);
+					XMLFile archivoXMLRef = new XMLFile(refTabla, pathCarpeta);
+					ArrayList<ArrayList<String>> tmpQueryFK = archivoXMLRef.queryColumns(refColumna);
+					if (!tmpQueryFK.contains(dato)){
+						agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+metaTabla.get(j).get(4)+"> no contiene el valor <"+dato+">");
+						return "_error_";
+					}
+					
+				}
+			}
+		}
+		
+		//CHECK 0,5,6 en metaTabla
+		ArrayList<String> checkExpressions = new ArrayList<String>();
+		
+		for (int i=0;i<metaTabla.size();i++){
+			if (!checkExpressions.contains(metaTabla.get(i).get(6)) && !metaTabla.get(i).get(6).equals("")){
+				checkExpressions.add(metaTabla.get(i).get(6));
+			}
+		}
+		
+		evaluandoExp=true;
+		//Ordenar columnas para el replace
+		ArrayList<String> sortedDatos = new ArrayList<String>();
+		ArrayList<String> sortedColumns = new ArrayList<String>();
+		int min=0;
+		for (int k=0;k<columnasAsignacion.size();k++){
+			if(columnasAsignacion.get(k).length()<=min){
+				sortedColumns.add(columnasAsignacion.get(k));
+				min=columnasAsignacion.get(k).length();
+			}
+			else{
+				sortedColumns.add(0,columnasAsignacion.get(k));
+			}
+		}
+		
+		for (int k=0;k<sortedColumns.size();k++){
+			sortedDatos.add(datos.get(columnasAsignacion.indexOf(sortedColumns.get(k))));
+		}
+		
+		
+		for(int j=0;j<checkExpressions.size();j++){
+			String chexp =  checkExpressions.get(j);
+			for (int k=0;k<sortedColumns.size();k++){
+				if (chexp.contains(sortedColumns.get(k))){
+					
+					chexp = chexp.replace(sortedColumns.get(k), sortedDatos.get(k));
+				}
+			}
+			
+			ANTLRInputStream input = new ANTLRInputStream(chexp);
+			SQLLexer lexer = new SQLLexer(input);
+			CommonTokenStream tokens = new CommonTokenStream(lexer);
+			SQLParser parser = new SQLParser(tokens);
+			ParseTree tree = parser.exp();  // parse exp; start a program
+			DBVisitor visitor = new DBVisitor();
+			visitor.setNombreBD(nombreBD);
+			visitor.setPathBase(pathBase);
+			visitor.setNombreTabla(nombreTabla);
+			visitor.visit(tree);
+			SQLParser.ExpContext checkContext = visitor.getContextExp();
+			if (visitExp(checkContext).equals("false")){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+checkContext.getText()+"> no cumple la condicion <"+checkExpressions.get(j)+">");
+				return "_error_";
+			}
+		}
+		evaluandoExp=false;
+		//Termina revision de check
+		
+		//TODO lo alegre
+		int filasAfectadas = 0;
+		SQLParser.ExpContext exp = null;
+		boolean esTodo = false;
+		try{
+			exp = ctx.exp();
+		}
+		catch (Exception e){
+		}
+		if(exp==null){
+			esTodo = true;
+		}
+		
+
+		ArrayList<ArrayList<String>> queryTabla = archivoXMLTabla.queryColumns(columnasTabla);
+		//
+		ArrayList<ArrayList<String>> modificados = new ArrayList<ArrayList<String>>();
+		if (esTodo){
+			modificados = queryTabla;
+		}
+		else{
+			visit(exp);
+			for(int j=0;j<queryTabla.size();j++){
+				if (checkTupla(queryTabla.get(j), columnasTabla, exp)){
+					modificados.add(queryTabla.get(j));
+				}
+			}
+		}
+		columnas = columnasTabla;
+		data = modificados;
+		
+		ArrayList<ArrayList<String>> nuevos = new ArrayList<ArrayList<String>>();
+		
+		
+		
+		for(int i=0;i<modificados.size();i++){
+			ArrayList<String> tuplaVieja = modificados.get(i);
+			ArrayList<String> tuplaNueva = new ArrayList<String>();
+			
+			for(int k=0;k<tuplaVieja.size();k++){
+				tuplaNueva.add(tuplaVieja.get(k));
+			}
+			
+			for(int j=0;j<datos.size();j++){
+				tuplaNueva.set(columnasTabla.indexOf(columnasAsignacion.get(j)), datos.get(j));
+			}
+			nuevos.add(tuplaNueva);
+		}
+		
+		//revisar que lo que se inserta no sean PKs repetidas
+		if(nuevos.size()>1){
+			for(int j=0;j<columnasAsignacion.size();j++){
+				if(idColsPK.contains(columnasAsignacion.get(j))){
+					agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+columnasAsignacion.get(j)+"> es una llave primaria y hay mas de un elemento que cumple la condicion.");
+					return "_error_";
+				}
+			}
+		}
+		
+		
+		//TODO revisar que lo que se inserta sea fk (en caso sea)
+		
+		
+		for(int i=0;i<nuevos.size();i++){
+			archivoXMLTabla.updateTupla(columnasTabla,modificados.get(i),nuevos.get(i));
+		}
+		contadorUpdates = nuevos.size(); 
+		return "";
+	}
+	
+	public String visitDelete(SQLParser.DeleteContext ctx){
 		return "";
 	}
 	
@@ -757,7 +1338,13 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			datosTipos.add("int");
 			datos.add(ctx.getText());
 		}
-		return "int";
+		if (evaluandoExp){
+			return ctx.getText();
+		}
+		else{
+			return "int";
+		}
+		
 	}
 	
 	public String visitDecimal(SQLParser.DecimalContext ctx){
@@ -766,7 +1353,13 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			datosTipos.add("float");
 			datos.add(ctx.getText());
 		}
-		return "float";
+		if (evaluandoExp){
+			return ctx.getText();
+		}
+		else{
+			return "float";
+		}
+		
 	}
 	
 	public String visitFecha(SQLParser.FechaContext ctx){
@@ -775,7 +1368,13 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			datosTipos.add("date");
 			datos.add(ctx.getText());
 		}
-		return "date";
+		
+		if (evaluandoExp){
+			return ctx.getText();
+		}
+		else{
+			return "date";
+		}
 	}
 	
 	public String visitCharacter(SQLParser.CharacterContext ctx){
@@ -786,7 +1385,12 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			datosTipos.add("char("+tamano+")");			
 			datos.add(datoIng);
 		}
-		return "char";
+		if (evaluandoExp){
+			return ctx.getText();
+		}
+		else{
+			return "char";
+		}
 	}
 	
 	public int tamanoChar(String texto){
@@ -826,7 +1430,13 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			if (indice == -1){
 				datosOrdenados.add("null");
 			}else{
-				datosOrdenados.add(datosInsertar.get(indice));
+				try{
+					datosOrdenados.add(datosInsertar.get(indice));
+				}
+				catch(Exception E){
+					datosOrdenados.add("null");
+				}
+				
 			}
 		}
 		return datosOrdenados;
@@ -890,4 +1500,114 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			//Algo
 		}
 	}
+	
+	
+	public ArrayList<ArrayList<String>> getTableMetadata(){
+		ArrayList<String> cols = new ArrayList<String>();
+		ArrayList<ArrayList<String>> datos = new ArrayList<ArrayList<String>>();
+		cols.add("nombreColumna");
+		cols.add("tipoDato");
+		cols.add("primaryKey");
+		cols.add("foreignKey");
+		cols.add("referenciaFK");
+		cols.add("check");
+		cols.add("expresion");
+		tablaCols = archivoXML.listarColumnas(nombreTabla);
+		ArrayList<ArrayList<String>> listaConstraintsPK = archivoXML.listarConstraintsEspecificosTabla(nombreTabla,"primaryKey");
+		ArrayList<ArrayList<String>> listaConstraintsFK = archivoXML.listarConstraintsEspecificosTabla(nombreTabla,"foreignKey");
+		ArrayList<ArrayList<String>> listaConstraintsCHK = archivoXML.listarConstraintsEspecificosTabla(nombreTabla,"check");
+		//datos.add(cols);
+		//Agregar data
+		for (int i=0;i<tablaCols.size();i++){
+			//Agregar PK si es
+			ArrayList<String> tupla = new ArrayList<String>();
+			String tipoDato = archivoXML.tipoCol(nombreTabla,tablaCols.get(i));
+			String PK="";
+			String FK="";
+			String FKref="";
+			String check="";
+			String expresion="";
+			//Primary keys
+			for (int j=0;j<listaConstraintsPK.get(0).size();j++){
+				if(listaConstraintsPK.get(j+1).contains(tablaCols.get(i))){
+					PK = listaConstraintsPK.get(0).get(j);
+				}
+			}
+			//Foreign Keys
+			for (int j=0;j<listaConstraintsFK.get(0).size();j++){
+				if(listaConstraintsFK.get((2*j)+1).contains(tablaCols.get(i))){
+					FK = listaConstraintsFK.get(0).get(j);
+					FKref = listaConstraintsFK.get((2*j)+2).get(listaConstraintsFK.get((2*j)+1).indexOf(tablaCols.get(i)));
+				}
+			}
+			//Check
+			for (int j=0;j<listaConstraintsCHK.get(1).size();j++){
+				if(listaConstraintsCHK.get(1).get(j).contains(tablaCols.get(i))){
+					check = listaConstraintsCHK.get(0).get(j);
+					expresion = listaConstraintsCHK.get(1).get(j);
+				}
+			}
+			tupla.add(tablaCols.get(i));
+			tupla.add(tipoDato);
+			tupla.add(PK);
+			tupla.add(FK);
+			tupla.add(FKref);
+			tupla.add(check);
+			tupla.add(expresion);
+			datos.add(tupla);
+		}
+		return datos;
+	}
+	
+	public boolean checkTupla(ArrayList<String> tupla, ArrayList<String> columnas, SQLParser.ExpContext expresion){
+		evaluandoExp=true;
+		//Ordenar columnas para el replace
+		ArrayList<String> sortedDatos = new ArrayList<String>();
+		ArrayList<String> sortedColumns = new ArrayList<String>();
+		int min=0;
+		for (int k=0;k<columnas.size();k++){
+			if(columnas.get(k).length()<=min){
+				sortedColumns.add(columnas.get(k));
+				min=columnas.get(k).length();
+			}
+			else{
+				sortedColumns.add(0,columnas.get(k));
+			}
+		}
+		
+		for (int k=0;k<sortedColumns.size();k++){
+			sortedDatos.add(tupla.get(columnas.indexOf(sortedColumns.get(k))));
+		}
+		
+		
+		String chexp =  expresion.getText();
+		for (int k=0;k<sortedColumns.size();k++){
+			if (chexp.contains(sortedColumns.get(k))){
+				
+				chexp = chexp.replace(sortedColumns.get(k), sortedDatos.get(k));
+			}
+		}
+		
+		ANTLRInputStream input = new ANTLRInputStream(chexp);
+		SQLLexer lexer = new SQLLexer(input);
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		SQLParser parser = new SQLParser(tokens);
+		ParseTree tree = parser.exp();  // parse exp; start a program
+		DBVisitor visitor = new DBVisitor();
+		visitor.setNombreBD(nombreBD);
+		visitor.setPathBase(pathBase);
+		visitor.setNombreTabla(nombreTabla);
+		visitor.visit(tree);
+		SQLParser.ExpContext checkContext = visitor.getContextExp();
+		if (visitExp(checkContext).equals("false")){
+			evaluandoExp=false;
+			return false;
+		}else{
+			evaluandoExp=false;
+			return true;
+		}
+	}
+	
+	
+	
 }

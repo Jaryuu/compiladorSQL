@@ -49,6 +49,13 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitReferences(@NotNull SQLParser.ReferencesContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code expGL}
+	 * labeled alternative in {@link SQLParser#exp4}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpGL(@NotNull SQLParser.ExpGLContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code tipoFloat}
 	 * labeled alternative in {@link SQLParser#tipo}.
 	 * @param ctx the parse tree
@@ -88,23 +95,19 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCharacter(@NotNull SQLParser.CharacterContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SQLParser#exp4}.
+	 * Visit a parse tree produced by the {@code expNotOr}
+	 * labeled alternative in {@link SQLParser#exp2}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitExp4(@NotNull SQLParser.Exp4Context ctx);
+	T visitExpNotOr(@NotNull SQLParser.ExpNotOrContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SQLParser#exp3}.
+	 * Visit a parse tree produced by the {@code expNotGl}
+	 * labeled alternative in {@link SQLParser#exp4}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitExp3(@NotNull SQLParser.Exp3Context ctx);
-	/**
-	 * Visit a parse tree produced by {@link SQLParser#exp2}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitExp2(@NotNull SQLParser.Exp2Context ctx);
+	T visitExpNotGl(@NotNull SQLParser.ExpNotGlContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#exp}.
 	 * @param ctx the parse tree
@@ -125,6 +128,20 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitCPK(@NotNull SQLParser.CPKContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code expNotEq}
+	 * labeled alternative in {@link SQLParser#exp3}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpNotEq(@NotNull SQLParser.ExpNotEqContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code expOr}
+	 * labeled alternative in {@link SQLParser#exp2}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpOr(@NotNull SQLParser.ExpOrContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#query}.
 	 * @param ctx the parse tree
@@ -159,6 +176,13 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDropDB(@NotNull SQLParser.DropDBContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code expNotAnd}
+	 * labeled alternative in {@link SQLParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpNotAnd(@NotNull SQLParser.ExpNotAndContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code addConstraintTB}
 	 * labeled alternative in {@link SQLParser#tableAction}.
 	 * @param ctx the parse tree
@@ -172,12 +196,6 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitCCheck(@NotNull SQLParser.CCheckContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SQLParser#unifactor}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitUnifactor(@NotNull SQLParser.UnifactorContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#logicExpAnd}.
 	 * @param ctx the parse tree
@@ -196,6 +214,13 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitDecimal(@NotNull SQLParser.DecimalContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code expID}
+	 * labeled alternative in {@link SQLParser#factor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpID(@NotNull SQLParser.ExpIDContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code addColumnTB}
 	 * labeled alternative in {@link SQLParser#tableAction}.
@@ -247,6 +272,13 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpresion(@NotNull SQLParser.ExpresionContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code expAnd}
+	 * labeled alternative in {@link SQLParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpAnd(@NotNull SQLParser.ExpAndContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code tipoDate}
 	 * labeled alternative in {@link SQLParser#tipo}.
 	 * @param ctx the parse tree
@@ -266,17 +298,18 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLogicExp(@NotNull SQLParser.LogicExpContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code expNotFactor}
+	 * labeled alternative in {@link SQLParser#unifactor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpNotFactor(@NotNull SQLParser.ExpNotFactorContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SQLParser#relationalExp}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitRelationalExp(@NotNull SQLParser.RelationalExpContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SQLParser#factor}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitFactor(@NotNull SQLParser.FactorContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#relationalExpGL}.
 	 * @param ctx the parse tree
@@ -318,11 +351,32 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCondicion(@NotNull SQLParser.CondicionContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code expEq}
+	 * labeled alternative in {@link SQLParser#exp3}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpEq(@NotNull SQLParser.ExpEqContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SQLParser#todo}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitTodo(@NotNull SQLParser.TodoContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code expFactor}
+	 * labeled alternative in {@link SQLParser#unifactor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpFactor(@NotNull SQLParser.ExpFactorContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code expParentheses}
+	 * labeled alternative in {@link SQLParser#factor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpParentheses(@NotNull SQLParser.ExpParenthesesContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#casitodo}.
 	 * @param ctx the parse tree
@@ -336,6 +390,13 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitRenameTB(@NotNull SQLParser.RenameTBContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code expLiteral}
+	 * labeled alternative in {@link SQLParser#factor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpLiteral(@NotNull SQLParser.ExpLiteralContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code createDB}
 	 * labeled alternative in {@link SQLParser#database}.

@@ -88,6 +88,18 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterExpGL(@NotNull SQLParser.ExpGLContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpGL(@NotNull SQLParser.ExpGLContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterTipoFloat(@NotNull SQLParser.TipoFloatContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -160,37 +172,25 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterExp4(@NotNull SQLParser.Exp4Context ctx) { }
+	@Override public void enterExpNotOr(@NotNull SQLParser.ExpNotOrContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitExp4(@NotNull SQLParser.Exp4Context ctx) { }
+	@Override public void exitExpNotOr(@NotNull SQLParser.ExpNotOrContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterExp3(@NotNull SQLParser.Exp3Context ctx) { }
+	@Override public void enterExpNotGl(@NotNull SQLParser.ExpNotGlContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitExp3(@NotNull SQLParser.Exp3Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterExp2(@NotNull SQLParser.Exp2Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitExp2(@NotNull SQLParser.Exp2Context ctx) { }
+	@Override public void exitExpNotGl(@NotNull SQLParser.ExpNotGlContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -227,6 +227,30 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitCPK(@NotNull SQLParser.CPKContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExpNotEq(@NotNull SQLParser.ExpNotEqContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpNotEq(@NotNull SQLParser.ExpNotEqContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExpOr(@NotNull SQLParser.ExpOrContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpOr(@NotNull SQLParser.ExpOrContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -292,6 +316,18 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterExpNotAnd(@NotNull SQLParser.ExpNotAndContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpNotAnd(@NotNull SQLParser.ExpNotAndContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterAddConstraintTB(@NotNull SQLParser.AddConstraintTBContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -311,18 +347,6 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitCCheck(@NotNull SQLParser.CCheckContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterUnifactor(@NotNull SQLParser.UnifactorContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitUnifactor(@NotNull SQLParser.UnifactorContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -359,6 +383,18 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDecimal(@NotNull SQLParser.DecimalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExpID(@NotNull SQLParser.ExpIDContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpID(@NotNull SQLParser.ExpIDContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -460,6 +496,18 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterExpAnd(@NotNull SQLParser.ExpAndContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpAnd(@NotNull SQLParser.ExpAndContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterTipoDate(@NotNull SQLParser.TipoDateContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -496,6 +544,18 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterExpNotFactor(@NotNull SQLParser.ExpNotFactorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpNotFactor(@NotNull SQLParser.ExpNotFactorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterRelationalExp(@NotNull SQLParser.RelationalExpContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -503,18 +563,6 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitRelationalExp(@NotNull SQLParser.RelationalExpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterFactor(@NotNull SQLParser.FactorContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFactor(@NotNull SQLParser.FactorContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -592,6 +640,18 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterExpEq(@NotNull SQLParser.ExpEqContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpEq(@NotNull SQLParser.ExpEqContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterTodo(@NotNull SQLParser.TodoContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -599,6 +659,30 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitTodo(@NotNull SQLParser.TodoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExpFactor(@NotNull SQLParser.ExpFactorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpFactor(@NotNull SQLParser.ExpFactorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExpParentheses(@NotNull SQLParser.ExpParenthesesContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpParentheses(@NotNull SQLParser.ExpParenthesesContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -623,6 +707,18 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitRenameTB(@NotNull SQLParser.RenameTBContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExpLiteral(@NotNull SQLParser.ExpLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpLiteral(@NotNull SQLParser.ExpLiteralContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

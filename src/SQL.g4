@@ -179,7 +179,7 @@ MULTILINE_COMMENT
 ID : LETTER (LETTER | DIGIT)* ;
 NUM: UNUM(UNUM)* ;
 UNUM: DIGIT ;
-DATE: UNUM UNUM UNUM UNUM '-' UNUM UNUM '-' UNUM UNUM;
+DATE:  '\'' UNUM UNUM UNUM UNUM '-' UNUM UNUM '-' UNUM UNUM '\'';
 
 CHAR: '\''~('\r'|'\n'|'\'')* '\'';
 
@@ -187,7 +187,7 @@ CHAR: '\''~('\r'|'\n'|'\'')* '\'';
 
 
 todo
-: (casitodo)+
+: (casitodo) (';'casitodo)* (';')?
 ;
 
 casitodo
@@ -206,6 +206,7 @@ database
 
 data
 :	insert																	
+|	update
 |	delete																	
 |	query																	
 ;
@@ -248,34 +249,39 @@ references
 ;
 
 exp
-:	exp logicExpAnd exp2
-|	exp2
+:	expr
+;
+
+
+expr
+:	expr logicExpAnd exp2													#expAnd
+|	exp2																	#expNotAnd
 ;
 
 exp2
-:	exp2 logicExpOr exp3
-|	exp3
+:	exp2 logicExpOr exp3													#expOr
+|	exp3																	#expNotOr
 ;
 
 exp3
-:	exp3 relationalExpEq exp4
-|	exp4
+:	exp3 relationalExpEq exp4												#expEq
+|	exp4																	#expNotEq
 ;
 
 exp4
-:	exp4 relationalExpGL exp4
-|	unifactor
+:	exp4 relationalExpGL unifactor											#expGL
+|	unifactor																#expNotGl
 ;
 
 unifactor
-:	K_NOT factor
-| 	factor
+:	K_NOT factor															#expNotFactor
+| 	factor																	#expFactor
 ;
 
 factor
-:	literal
-|	'(' exp ')'
-| 	ID 
+:	literal																	#expLiteral
+|	'(' exp ')'																#expParentheses
+| 	ID ('.'ID)?																#expID
 ;
 
 literal
@@ -357,7 +363,7 @@ condicion
 ;
 
 delete
-:	K_DELETE   K_FROM  ID  K_WHERE exp
+:	K_DELETE   K_FROM  ID  (K_WHERE exp)?
 ;
 
 query

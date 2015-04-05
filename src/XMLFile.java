@@ -612,25 +612,40 @@ public class XMLFile {
 			        	   NodeList listConstraints = eElement.getElementsByTagName(tipoConstraint);
 			        	   
 				           if (tipoConstraint.equals("primaryKey")){
+				        	   lista.add(new ArrayList<String>());
 				        	   for (int z=0; z<listConstraints.getLength(); z++){
-					        	   org.w3c.dom.Node nodoPK =  listConstraints.item(z);
+				        		   	detalleConstraint = new ArrayList<String>();
+					        	    org.w3c.dom.Node nodoPK =  listConstraints.item(z);
 									if (nodoPK.getNodeType() == Node.ELEMENT_NODE) {	           
 							           Element eElementPK = (Element) nodoPK;
 							           nombreConstraint.add(eElementPK.getElementsByTagName("nombrePK").item(0).getTextContent());
-							           detalleConstraint.add(eElementPK.getElementsByTagName("idColumna").item(0).getTextContent());
+							           for(int w=0;w<eElementPK.getElementsByTagName("idColumna").getLength();w++){
+							        	   detalleConstraint.add(eElementPK.getElementsByTagName("idColumna").item(w).getTextContent());   
+							           }
+							           lista.set(0,nombreConstraint);
+							           lista.add(detalleConstraint);
 									}
 					           }
 				           }
 				           else if(tipoConstraint.equals("foreignKey")){
+				        	   lista.add(new ArrayList<String>());
 				        	   for (int z=0; z<listConstraints.getLength(); z++){
+				        		   detalleConstraint = new ArrayList<String>();
+				        		   references = new ArrayList<String>();
 					        	   org.w3c.dom.Node nodoFK =  listConstraints.item(z);
 									if (nodoFK.getNodeType() == Node.ELEMENT_NODE) {	           
 							           Element eElementFK = (Element) nodoFK;
 							           nombreConstraint.add(eElementFK.getElementsByTagName("nombreFK").item(0).getTextContent());
-							           detalleConstraint.add(eElementFK.getElementsByTagName("idColumna").item(0).getTextContent());
-							           references.add(eElementFK.getElementsByTagName("referencia").item(0).getTextContent());
+							           for(int w=0;w<eElementFK.getElementsByTagName("idColumna").getLength();w++){
+							        	   detalleConstraint.add(eElementFK.getElementsByTagName("idColumna").item(w).getTextContent());
+							        	   references.add(eElementFK.getElementsByTagName("referencia").item(0).getTextContent());
+							           }
+							           lista.set(0,nombreConstraint);
+							           lista.add(detalleConstraint);
+						        	   lista.add(references);
 									}
 					           }
+				        	   
 				           }
 				           else if(tipoConstraint.equals("check")){
 				        	   for (int z=0; z<listConstraints.getLength(); z++){
@@ -641,6 +656,8 @@ public class XMLFile {
 							           detalleConstraint.add(eElementFK.getElementsByTagName("expresion").item(0).getTextContent());
 									}
 					           }
+				        	   lista.add(nombreConstraint);
+				        	   lista.add(detalleConstraint);
 				           }
 			        	   
 			           }
@@ -648,9 +665,7 @@ public class XMLFile {
 				}
 			}
 		}
-		lista.add(nombreConstraint);
-		lista.add(detalleConstraint);
-		lista.add(references);
+		
 		return lista;
 	}
 	
@@ -711,7 +726,7 @@ public class XMLFile {
 				           // Para primary keys de la misma tabla
 			        	   NodeList listPK = eElement.getElementsByTagName("primaryKey");
 				           for (int z=0; z<listPK.getLength(); z++){
-				        	   org.w3c.dom.Node nodoPK =  listPK.item(z);
+				        	    org.w3c.dom.Node nodoPK =  listPK.item(z);
 								if (nodoPK.getNodeType() == Node.ELEMENT_NODE) {	           
 						           Element eElementPK = (Element) nodoPK;
 					        	   lista.add(eElementPK.getElementsByTagName("nombrePK").item(0).getTextContent());
@@ -720,10 +735,19 @@ public class XMLFile {
 				           // Para foreign keys de la misma tabla
 				           NodeList listFK = eElement.getElementsByTagName("foreignKey");
 				           for (int z=0; z<listFK.getLength(); z++){
-				        	   org.w3c.dom.Node nodoFK =  listFK.item(z);
+				        	    org.w3c.dom.Node nodoFK =  listFK.item(z);
 								if (nodoFK.getNodeType() == Node.ELEMENT_NODE) {	           
 						           Element eElementFK = (Element) nodoFK;
 						           lista.add(eElementFK.getElementsByTagName("nombreFK").item(0).getTextContent());
+								}
+				           }
+				           //Para checks
+				           NodeList listCHK = eElement.getElementsByTagName("check");
+				           for (int z=0; z<listCHK.getLength(); z++){
+				        	    org.w3c.dom.Node nodoCHK =  listCHK.item(z);
+								if (nodoCHK.getNodeType() == Node.ELEMENT_NODE) {	           
+						           Element eElementCHK = (Element) nodoCHK;
+						           lista.add(eElementCHK.getElementsByTagName("nombreCheck").item(0).getTextContent());
 								}
 				           }
 						}
@@ -808,6 +832,17 @@ public class XMLFile {
 						           }
 								}
 				           }
+				           NodeList listCHK = eElement.getElementsByTagName("check");
+				           for (int z=0; z<listCHK.getLength(); z++){
+				        	   org.w3c.dom.Node nodoCHK =  listCHK.item(z);
+								if (nodoCHK.getNodeType() == Node.ELEMENT_NODE) {	           
+						           Element eElementCHK = (Element) nodoCHK;
+						           if (eElementCHK.getElementsByTagName("nombreCheck").item(0).getTextContent().equals(idC)){
+						        	   eliminarNodo(listCHK, "nombreCheck", idC);
+					        		   return true;
+						           }
+								}
+				           }
 						}
 					}
 				}
@@ -857,6 +892,53 @@ public class XMLFile {
 			}
 		}
 		return databases;
+	}
+	
+	public ArrayList<ArrayList<String>> queryColumns(ArrayList<String> columns){
+		ArrayList<ArrayList<String>> query = new ArrayList<ArrayList<String>>();
+		NodeList list = rootElement.getElementsByTagName("tupla");
+		
+			
+			for (int j = 0; j < list.getLength(); j++) {
+				ArrayList<String> tupla = new ArrayList<String>();
+				org.w3c.dom.Node nodo =  list.item(j);
+				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+		           Element eElement = (Element) nodo;
+		           for (int i = 0; i < columns.size(); i++) {
+		        	   tupla.add(eElement.getElementsByTagName(columns.get(i)).item(0).getTextContent());
+		           }
+				}
+				query.add(tupla);
+			}
+		return query;
+	}
+	
+	public void updateTupla(ArrayList<String> columnas, ArrayList<String> viejo, ArrayList<String> nuevo){
+		NodeList nodes = doc.getElementsByTagName("tupla");
+		for (int j = 0; j < nodes.getLength(); j++) {
+			org.w3c.dom.Node nodo =  nodes.item(j);
+			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+	           Element eElement = (Element) nodo;
+	           if (nodo.getNodeType() == Node.ELEMENT_NODE) {
+	        	   ArrayList<Boolean> esLaTupla= new ArrayList<Boolean>();
+	        	   for (int k = 0; k < columnas.size(); k++) {
+	        		   if (eElement.getElementsByTagName(columnas.get(k)).item(0).getTextContent().equals(viejo.get(k))){
+	        			   esLaTupla.add(true);
+			           }
+	        		   else{
+	        			   esLaTupla.add(false);
+	        		   }
+	        		   
+		           }
+	        	   if(!esLaTupla.contains(false)){
+	        		   for (int k = 0; k < columnas.size(); k++) {
+		        		   eElement.getElementsByTagName(columnas.get(k)).item(0).setTextContent(nuevo.get(k));
+			           }
+	        	   }  
+				}
+			}
+		}
+		createFile();
 	}
 	
 }
