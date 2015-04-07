@@ -367,7 +367,7 @@ delete
 ;
 
 query
-:	K_SELECT ('*' | (ID (',' ID)*))  K_FROM  ID  (K_WHERE  exp K_ORDER  K_BY (expresion (K_ASC | K_DESC) (',' expresion (K_ASC | K_DESC))*)*)? 
+:	K_SELECT ('*' | (ID (',' ID)*))  K_FROM  ID(','ID)*  (K_WHERE  exp K_ORDER  K_BY (expresion (K_ASC | K_DESC) (',' expresion (K_ASC | K_DESC))*)*)? 
 ;
 
 expresion
