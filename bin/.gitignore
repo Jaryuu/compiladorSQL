@@ -10,7 +10,6 @@
 /SQLLexer.class
 /SQLListener.class
 /SQLParser$AddColumnTBContext.class
-/SQLParser$AddConstraintTBContext.class
 /SQLParser$AlterDBContext.class
 /SQLParser$AlterTBContext.class
 /SQLParser$AsignacionContext.class
@@ -28,6 +27,7 @@
 /SQLParser$DatabaseContext.class
 /SQLParser$DecimalContext.class
 /SQLParser$DeleteContext.class
+/SQLParser$DropColumnTBContext.class
 /SQLParser$DropConstraintTBContext.class
 /SQLParser$DropDBContext.class
 /SQLParser$DropTBContext.class
@@ -45,7 +45,6 @@
 /SQLParser$ExpNotAndContext.class
 /SQLParser$ExpNotEqContext.class
 /SQLParser$ExpNotFactorContext.class
-/SQLParser$ExpNotGlContext.class
 /SQLParser$ExpNotOrContext.class
 /SQLParser$ExpOrContext.class
 /SQLParser$ExpParenthesesContext.class
@@ -54,10 +53,10 @@
 /SQLParser$FactorContext.class
 /SQLParser$FechaContext.class
 /SQLParser$FormatValueContext.class
-/SQLParser$InsertContext.class
 /SQLParser$LiteralContext.class
 /SQLParser$LogicExpAndContext.class
 /SQLParser$LogicExpContext.class
+/SQLParser$LogicExpNotContext.class
 /SQLParser$LogicExpOrContext.class
 /SQLParser$QueryContext.class
 /SQLParser$ReferencesContext.class
@@ -80,3 +79,5 @@
 /SQLParser$UpdateContext.class
 /SQLParser$UseDBContext.class
 /SQLParser.class
+/SQLParser$ColumnsContext.class
+/SQLParser$ColumnContext.class

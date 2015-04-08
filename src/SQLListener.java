@@ -400,6 +400,16 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitTipoInt(@NotNull SQLParser.TipoIntContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SQLParser#columns}.
+	 * @param ctx the parse tree
+	 */
+	void enterColumns(@NotNull SQLParser.ColumnsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#columns}.
+	 * @param ctx the parse tree
+	 */
+	void exitColumns(@NotNull SQLParser.ColumnsContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SQLParser#insert}.
 	 * @param ctx the parse tree
 	 */
@@ -549,6 +559,16 @@ public interface SQLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDropColumnTB(@NotNull SQLParser.DropColumnTBContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SQLParser#column}.
+	 * @param ctx the parse tree
+	 */
+	void enterColumn(@NotNull SQLParser.ColumnContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#column}.
+	 * @param ctx the parse tree
+	 */
+	void exitColumn(@NotNull SQLParser.ColumnContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code cFK}
 	 * labeled alternative in {@link SQLParser#constraint}.

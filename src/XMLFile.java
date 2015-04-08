@@ -26,6 +26,11 @@ public class XMLFile {
 	private Document doc;
 	private Element rootElement;
 	
+	//Constructor vacio
+	public XMLFile(){
+		nombre="";
+	}
+	
 	// El path es la carpeta donde se encuentra el archivo
 	public XMLFile(String nombre,  String path){
 		this.nombre = nombre;
@@ -98,7 +103,17 @@ public class XMLFile {
 		eLemt.appendChild(doc.createElement("constraints"));
 		createFile();
 	}
+
 	
+	
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
 	public Element getRootElement() {
 		return rootElement;
 	}

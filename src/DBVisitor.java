@@ -29,7 +29,7 @@ import java.nio.file.Files;
 public class DBVisitor extends SQLBaseVisitor<String>{
 	
 	private ArrayList<String> mensajes, columnas, datos, tablaCols, listaConstraints, datosTipos;
-	private XMLFile archivoXML;
+	private XMLFile archivoXML ;
 	private String pathBase;
 	private String nombreBD = "", showNombre, nombreTabla;
 	private boolean exitoCarpeta, insertandoDatos;
@@ -39,6 +39,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	ArrayList<ArrayList<String>> data;
 	SQLParser.ExpContext contextExp;
 	ArrayList<String> expIds;
+	private XMLFile archivoXMLTabla = new XMLFile();
 	
 	
 	
@@ -128,7 +129,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		contadorInserts=0;
 		contadorUpdates=0;
 		if (!success) {
-		    System.out.println("Ya existe la carpeta");
+		    //System.out.println("Ya existe la carpeta");
 		    archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 		}else{
 			archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
@@ -626,6 +627,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	@Override
 	public String visitExpNotFactor(SQLParser.ExpNotFactorContext ctx) {
 		String returnTypeFactor = visit(ctx.factor());
+		//TODO Esto creo que esta malo
 		if (evaluandoExp){
 			return "-"+returnTypeFactor;
 		}
@@ -893,7 +895,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		ArrayList<String> columnasReales = new ArrayList<String>();
 		ArrayList<String> tiposReales  = new ArrayList<String>();
 		ArrayList<ArrayList<String>> temporal = new ArrayList<ArrayList<String>>();
-		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+		
+		if (!archivoXML.getNombre().equals("Metadata."+nombreBD)){
+			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+		}
 		
 		
 		if (ctx.ID().size()>1){
@@ -963,7 +968,12 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		// Revisamos las constraints
 		// La primary key no puede ser null
 		ArrayList<ArrayList<String>> metaTabla = getTableMetadata();
-		XMLFile archivoXMLTabla = new XMLFile(nombreTabla, pathCarpeta);
+		
+		if (!archivoXMLTabla.getNombre().equals(nombreTabla)){
+			archivoXMLTabla = new XMLFile(nombreTabla, pathCarpeta);
+		}
+		
+		
 		ArrayList<String> idColsPK = archivoXML.listaColsPK(nombreTabla);		
 		datos = organizarDatos(columnasReales, columnas, datos);
 		ArrayList<String> tuplaPK = new ArrayList<String>();
@@ -994,7 +1004,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				if (columnasReales.get(i).equals(metaTabla.get(j).get(0)) && !metaTabla.get(j).get(4).equals("")){
 					String col = columnasReales.get(i);
 					int indiceCol = columnasReales.indexOf(col);
-					String dato = datos.get(indiceCol);
+					ArrayList<String> dato = new ArrayList<String>();
+					dato.add(datos.get(indiceCol));
 					String referenciaCompleta = metaTabla.get(j).get(4);
 					String[] ref = referenciaCompleta.split("\\.");
 					String refTabla = ref[0];
@@ -1002,10 +1013,13 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 					refColumna.add(ref[1]);
 					XMLFile archivoXMLRef = new XMLFile(refTabla, pathCarpeta);
 					ArrayList<ArrayList<String>> tmpQueryFK = archivoXMLRef.queryColumns(refColumna);
+					
 					if (!tmpQueryFK.contains(dato)){
 						agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+metaTabla.get(j).get(4)+"> no contiene el valor <"+dato+">");
 						return "_error_";
+						
 					}
+					
 					
 				}
 			}
@@ -1073,8 +1087,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		adentrar.add("tabla");
 		archivoXML.sumar1Atributo(adentrar, "nombreTabla", nombreTabla, "cantidadRegistros");
 		// Ahora insertamos al archivo de la tabla la tupla
-		archivoXML = new XMLFile(nombreTabla, pathCarpeta);
-		archivoXML.add("tupla", columnasReales, datos);
+		if (!archivoXMLTabla.getNombre().equals(nombreTabla)){
+			archivoXMLTabla = new XMLFile(nombreTabla, pathCarpeta);
+		}
+		archivoXMLTabla.add("tupla", columnasReales, datos);
 		contadorInserts++;
 		return "";
 	}
@@ -1147,7 +1163,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		// Revisamos las constraints
 		// La primary key no puede ser null
 		ArrayList<ArrayList<String>> metaTabla = getTableMetadata();
-		XMLFile archivoXMLTabla = new XMLFile(nombreTabla, pathCarpeta);
+		if (!archivoXMLTabla.getNombre().equals(nombreTabla)){
+			archivoXMLTabla = new XMLFile(nombreTabla, pathCarpeta);
+		}
 		ArrayList<String> idColsPK = archivoXML.listaColsPK(nombreTabla);		
 		datos = organizarDatos(columnasAsignacion, columnasAsignacion, datos);
 		ArrayList<String> tuplaPK = new ArrayList<String>();
@@ -1321,6 +1339,16 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			archivoXMLTabla.updateTupla(columnasTabla,modificados.get(i),nuevos.get(i));
 		}
 		contadorUpdates = nuevos.size(); 
+		return "";
+	}
+	
+	public String visitQuery(SQLParser.QueryContext ctx){
+		ArrayList<String> listaTablas = new ArrayList<String>();
+		for(int i=0;i<ctx.ID().size();i++){
+			listaTablas.add(ctx.ID(i).getText());
+		}
+		
+		ArrayList<ArrayList<ArrayList<String>>> algo = crossProduct(listaTablas);
 		return "";
 	}
 	
@@ -1606,6 +1634,50 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			evaluandoExp=false;
 			return true;
 		}
+	}
+	
+	public ArrayList<ArrayList<ArrayList<String>>> crossProduct(ArrayList<String> tablas){
+		
+		String pathCarpeta = pathBase+"\\"+nombreBD;
+		if (!archivoXML.getNombre().equals("Metadata."+nombreBD)){
+			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+		}
+		
+		ArrayList<ArrayList<ArrayList<String>>> result = new ArrayList<ArrayList<ArrayList<String>>>();
+		ArrayList<ArrayList<String>> columnas = new ArrayList<ArrayList<String>>();
+		ArrayList<ArrayList<String>> tuplas = new ArrayList<ArrayList<String>>();
+				
+		
+		for(int i=0;i<tablas.size();i++){
+			XMLFile tabla = new XMLFile(tablas.get(i), pathCarpeta);
+			ArrayList<String> colsTabla = archivoXML.listarColumnas(tablas.get(i));
+			ArrayList<ArrayList<String>> queryTabla = tabla.queryColumns(colsTabla);
+			ArrayList<ArrayList<String>> temp = new ArrayList<ArrayList<String>>();
+			if(i==0){
+				temp.addAll(queryTabla);
+			}
+			else{
+				for(int j=0;j<tuplas.size();j++){
+					for(int k=0;k<queryTabla.size();k++){
+						ArrayList<String> tuplaNueva = new ArrayList<String>(tuplas.get(j));
+						tuplaNueva.addAll(queryTabla.get(k));
+						temp.add(tuplaNueva);
+					}
+					
+					
+				}
+			}
+			tuplas = new ArrayList<ArrayList<String>>();
+			tuplas.addAll(temp);
+			
+			
+		}
+		for(int i=0;i<tuplas.size();i++){
+			System.out.println(tuplas.get(i).toString());
+		}
+		
+		result.add(tuplas);
+		return result;
 	}
 	
 	
