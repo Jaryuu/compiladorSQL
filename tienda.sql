@@ -8,3 +8,4 @@ ALTER TABLE producto ADD COLUMN  precio float ;
 CREATE TABLE recibo (idCliente int, idProducto int, totalCompra float,id int);
 ALTER TABLE recibo ADD CONSTRAINT PRIMARY KEY pkRecibo(id); ALTER TABLE recibo ADD CONSTRAINT FOREIGN KEY fkReciboClie (idCliente) REFERENCES cliente(id);
 ALTER TABLE recibo ADD CONSTRAINT FOREIGN KEY fkReciboProd (idProducto) REFERENCES producto(id)
+CREATE TABLE empleado (id int, nombre char(20) CONSTRAINT PRIMARY KEY pkEmpleado(id));

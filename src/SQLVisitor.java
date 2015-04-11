@@ -242,12 +242,6 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitTipoInt(@NotNull SQLParser.TipoIntContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SQLParser#columns}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitColumns(@NotNull SQLParser.ColumnsContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link SQLParser#insert}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

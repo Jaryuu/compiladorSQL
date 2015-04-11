@@ -31,7 +31,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	private ArrayList<String> mensajes, columnas, datos, tablaCols, listaConstraints, datosTipos;
 	private XMLFile archivoXML ;
 	private String pathBase;
-	private String nombreBD = "", showNombre, nombreTabla;
+	private String nombreBD = "", showNombre, nombreTabla="";
 	private boolean exitoCarpeta, insertandoDatos;
 	private boolean evaluandoExp = false;
 	String contenido;	
@@ -40,7 +40,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	SQLParser.ExpContext contextExp;
 	ArrayList<String> expIds;
 	private XMLFile archivoXMLTabla = new XMLFile();
-	
+	//Para el select
+	private boolean isSelect=false;
+	ArrayList<String> listaTablas;
 	
 	
 	public ArrayList<String> getExpIds() {
@@ -113,6 +115,24 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 
 	public void setShowNombre(String showNombre) {
 		this.showNombre = showNombre;
+	}
+
+	
+	
+	public boolean getEvaluandoExp() {
+		return evaluandoExp;
+	}
+
+	public void setEvaluandoExp(boolean evaluandoExp) {
+		this.evaluandoExp = evaluandoExp;
+	}
+
+	public XMLFile getArchivoXML() {
+		return archivoXML;
+	}
+
+	public void setArchivoXML(XMLFile archivoXML) {
+		this.archivoXML = archivoXML;
 	}
 
 	public String visitTodo(SQLParser.TodoContext ctx){
@@ -256,7 +276,6 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			archivoXML = new XMLFile("Metadata."+nombreBD, pathBase+"\\"+nombreBD+"\\");
 			NodeList list = archivoXML.getRootElement().getElementsByTagName("tabla");
 			org.w3c.dom.Node nodo;
-//			ArrayList<String> nuevoDato;
 			for (int i = 0; i < list.getLength(); i++) {
 				nodo =  list.item(i);
 				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
@@ -570,26 +589,51 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	@Override
 	public String visitExpID(SQLParser.ExpIDContext ctx) {
 		String pathCarpeta = pathBase+"\\"+nombreBD;
-		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+		if (!archivoXML.getNombre().equals("Metadata."+nombreBD)){
+			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+		}
 		//Revisar tipo del ID
+		//TODO smth
 		String colType = "";
 		if(ctx.ID().size()==1){
+			
 			if (ctx.ID(0).getText().equals("null")){
 				return "null";
 			}
-			colType = archivoXML.tipoCol(nombreTabla, ctx.ID(0).getText());
+			if(!isSelect){
+				colType = archivoXML.tipoCol(nombreTabla, ctx.ID(0).getText());
+			}
+			else{
+				colType="None";
+				int cantReg=0;
+				for(int i=0;i<listaTablas.size();i++){
+					if(!archivoXML.tipoCol(listaTablas.get(i), ctx.ID(0).getText()).equals("None")){
+						cantReg++;
+						colType = archivoXML.tipoCol(listaTablas.get(i), ctx.ID(0).getText());
+					}
+				}
+				if (cantReg>1){
+					agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "la columna <"+ctx.getText()+"> aparece mas de una vez en las tablas consultadas y es ambiguo");
+					return "_error_";
+				}
+				
+			}
 			if(colType.startsWith("char")){
 				colType = "char";
 			}
+			
 			expIds.add(ctx.ID(0).getText());
+			
+			
 		}
 		else{
-			colType = archivoXML.tipoCol(ctx.ID(1).getText(), ctx.ID(0).getText());
-			expIds.add(ctx.ID(0).getText()+"."+ctx.ID(0).getText());
+			colType = archivoXML.tipoCol(ctx.ID(0).getText(), ctx.ID(1).getText());
+			expIds.add(ctx.ID(0).getText()+"."+ctx.ID(1).getText());
 			if(colType.startsWith("char")){
 				colType = "char";
 			}
 		}
+		
 		if (colType.equals("None")){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "la columna <"+ctx.getText()+"> no existe");
 			return "_error_";
@@ -645,9 +689,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 
 	@Override
 	public String visitExpEq(SQLParser.ExpEqContext ctx) {
+		
 		String returnExp3 = visit(ctx.exp3());
 		String returnExp4 = visit(ctx.exp4());
-		
 		if(evaluandoExp){
 			if (ctx.relationalExpEq().getText().equals("=")){
 				return String.valueOf(returnExp3.equals(returnExp4));
@@ -661,7 +705,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			if (returnExp3.equals(returnExp4) || returnExp4.equals("null")){
 				return "boolean";
 			}
-			else{
+			else{	
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
 				return "_error_";
 			}
@@ -1073,9 +1117,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			visitor.setPathBase(pathBase);
 			visitor.setNombreTabla(nombreTabla);
 			visitor.visit(tree);
-			SQLParser.ExpContext checkContext = visitor.getContextExp();
-			if (visitExp(checkContext).equals("false")){
-				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+checkContext.getText()+"> no cumple la condicion <"+checkExpressions.get(j)+">");
+			
+			contextExp = visitor.getContextExp();
+			if (visitExp(contextExp).equals("false")){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+contextExp.getText()+"> no cumple la condicion <"+checkExpressions.get(j)+">");
 				return "_error_";
 			}
 		}
@@ -1300,8 +1345,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				}
 			}
 		}
-		columnas = columnasTabla;
-		data = modificados;
+		//columnas = columnasTabla;
+		//data = modificados;
 		
 		ArrayList<ArrayList<String>> nuevos = new ArrayList<ArrayList<String>>();
 		
@@ -1343,16 +1388,287 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 	
 	public String visitQuery(SQLParser.QueryContext ctx){
-		ArrayList<String> listaTablas = new ArrayList<String>();
+		listaTablas = new ArrayList<String>();
 		for(int i=0;i<ctx.ID().size();i++){
 			listaTablas.add(ctx.ID(i).getText());
 		}
+		ArrayList<ArrayList<ArrayList<String>>> crossProd = crossProduct(listaTablas);
 		
-		ArrayList<ArrayList<ArrayList<String>>> algo = crossProduct(listaTablas);
+		ArrayList<ArrayList<String>> columns = crossProd.get(0);
+		ArrayList<ArrayList<String>> query = crossProd.get(1);
+		//Organizar las columns (con tabla.columna), la tabla repetidas dice que columnas se repiten, para que si aparecen en el where, se genere un error
+		ArrayList<String> colsQuery = new ArrayList<String>();
+		ArrayList<String> colsPunto = new ArrayList<String>();
+		ArrayList<String> repetidas = new ArrayList<String>();
+		for(int i=0;i<columns.size();i++){
+			for(int j=0;j<columns.get(i).size();j++){
+				colsPunto.add(listaTablas.get(i)+"."+columns.get(i).get(j));
+				boolean contieneDoble = false;
+				for(int k=0;k<columns.size();k++){
+					if (i!=k){
+						if(columns.get(k).contains(columns.get(i).get(j))){
+							contieneDoble=true;
+							if (!repetidas.contains(columns.get(i).get(j))){
+								repetidas.add(columns.get(i).get(j));
+							}
+							
+						}
+					}
+				
+				}
+				if (contieneDoble){
+					colsQuery.add(listaTablas.get(i)+"."+columns.get(i).get(j));
+				}
+				else{
+					colsQuery.add(columns.get(i).get(j));
+				}
+				
+			}
+		}		
+		/////// Revisar el SELECT columnas
+		ArrayList<String> colsSelect = new ArrayList<String>();
+		if (ctx.column().size()==0 || ctx.getChild(1).getText().equals("*")){
+			colsSelect = colsQuery;
+		}
+		for (int i=0; i<ctx.column().size();i++){
+			String columna = ctx.column(i).getText();				
+			if(repetidas.contains(columna)){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+columna+"> es una columna que se encuentra en mas de una tabla, la consulta es ambigua.");
+				return "_error_";
+			}
+			if(colsQuery.contains(columna)){
+				colsSelect.add(columna);
+			}
+			else if(colsPunto.contains(columna)){
+				colsSelect.add(columna);
+			}
+			else{
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+columna+"> es una columna que no se encuentra en el listado de tablas proveidas.");
+				return "_error_";
+			}
+		}
+		///////////
+		SQLParser.ExpContext exp = null;
+		boolean expTodo = false;
+		try{
+			exp = ctx.exp();
+		}
+		catch (Exception e){
+		}
+		if(exp==null){
+			expTodo = true;
+		}
+			
+		//Where
+		ArrayList<ArrayList<String>> modificados = new ArrayList<ArrayList<String>>();
+		if (expTodo){
+			modificados = query;
+		}
+		else{
+			isSelect=true;
+			visit(ctx.exp());
+			isSelect=false;
+			for(int j=0;j<query.size();j++){
+				if (checkTuplaSelect(query.get(j), colsQuery, colsPunto, ctx.exp())){
+					ArrayList<String> tuplaFiltro = new ArrayList<String>();
+					for(int k=0;k<colsSelect.size();k++){
+						if(colsQuery.contains(colsSelect.get(k))){
+							tuplaFiltro.add(query.get(j).get(colsQuery.indexOf(colsSelect.get(k))));
+						}
+						else{
+							tuplaFiltro.add(query.get(j).get(colsPunto.indexOf(colsSelect.get(k))));
+						}
+					}
+					
+					modificados.add(tuplaFiltro);
+				}
+			}
+		}
+			
+		data = modificados;
+		columnas = colsSelect;
+		
 		return "";
 	}
 	
 	public String visitDelete(SQLParser.DeleteContext ctx){
+		nombreTabla = ctx.ID().getText();
+		String pathCarpeta = pathBase+"\\"+nombreBD;
+		
+		File f = new File(pathCarpeta+"\\"+nombreTabla+".XML");
+		if (! f.exists()){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+nombreTabla+">");
+			return "_error_";
+		}
+		
+		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);		
+		
+		ArrayList<String> columnasTabla = archivoXML.listarColumnas(nombreTabla);
+		ArrayList<String> tiposTabla = archivoXML.listarTiposTabla(columnasTabla, nombreTabla);
+		ArrayList<String> tablas = archivoXML.showTables();
+		
+//		//Revisar llaves foraneas  (que no sea FK de otra tabla) 4?
+		//El primer item de cada de cada tupla colsRef es el nombre de la tabla que le hace referencia y el resto de items son las columnas que se necesitan de esa tabla
+		//Sobre colsRef se hara la consulta en cada tabla para saber si el item a borrar es referenciado.
+		ArrayList<ArrayList<String>> colsRef = new ArrayList<ArrayList<String>>();
+		for(int i=0;i<tablas.size();i++){
+			if(!nombreTabla.equals(tablas.get(i))){
+				ArrayList<ArrayList<String>> fksTabla = archivoXML.listarConstraintsEspecificosTabla(tablas.get(i),"foreignKey");
+				for (int j=0;j<fksTabla.get(0).size();j++){
+					ArrayList<String> tuplaRef = new ArrayList<String>();
+					tuplaRef.add(tablas.get(i));
+					for (int k=0;k<fksTabla.get((2*j)+2).size();k++){
+						String[] ref = fksTabla.get((2*j)+2).get(0).split("\\.");
+						if(ref[0].equals(nombreTabla)){
+							tuplaRef.add(ref[1]);
+						}
+					}
+					if(tuplaRef.size()>1){
+						colsRef.add(tuplaRef);
+					}
+				}
+			}
+		}
+		
+		
+//		for(int i=0;i<columnasAsignacion.size();i++){
+//			for(int j=0;j<metaTabla.size();j++){
+//				//Verificar si esa columna tiene FK
+//				if (columnasAsignacion.get(i).equals(metaTabla.get(j).get(0)) && !metaTabla.get(j).get(4).equals("")){
+//					String col = columnasAsignacion.get(i);
+//					int indiceCol = columnasAsignacion.indexOf(col);
+//					String dato = datos.get(indiceCol);
+//					String referenciaCompleta = metaTabla.get(j).get(4);
+//					String[] ref = referenciaCompleta.split("\\.");
+//					String refTabla = ref[0];
+//					ArrayList<String> refColumna = new ArrayList<String>();
+//					refColumna.add(ref[1]);
+//					XMLFile archivoXMLRef = new XMLFile(refTabla, pathCarpeta);
+//					ArrayList<ArrayList<String>> tmpQueryFK = archivoXMLRef.queryColumns(refColumna);
+//					if (!tmpQueryFK.contains(dato)){
+//						agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+metaTabla.get(j).get(4)+"> no contiene el valor <"+dato+">");
+//						return "_error_";
+//					}
+//					
+//				}
+//			}
+//		}
+//		
+//		evaluandoExp=true;
+//		//Ordenar columnas para el replace
+//		ArrayList<String> sortedDatos = new ArrayList<String>();
+//		ArrayList<String> sortedColumns = new ArrayList<String>();
+//		int min=0;
+//		for (int k=0;k<columnasAsignacion.size();k++){
+//			if(columnasAsignacion.get(k).length()<=min){
+//				sortedColumns.add(columnasAsignacion.get(k));
+//				min=columnasAsignacion.get(k).length();
+//			}
+//			else{
+//				sortedColumns.add(0,columnasAsignacion.get(k));
+//			}
+//		}
+//		
+//		for (int k=0;k<sortedColumns.size();k++){
+//			sortedDatos.add(datos.get(columnasAsignacion.indexOf(sortedColumns.get(k))));
+//		}
+//		
+//		
+//		for(int j=0;j<checkExpressions.size();j++){
+//			String chexp =  checkExpressions.get(j);
+//			for (int k=0;k<sortedColumns.size();k++){
+//				if (chexp.contains(sortedColumns.get(k))){
+//					
+//					chexp = chexp.replace(sortedColumns.get(k), sortedDatos.get(k));
+//				}
+//			}
+//			
+//			ANTLRInputStream input = new ANTLRInputStream(chexp);
+//			SQLLexer lexer = new SQLLexer(input);
+//			CommonTokenStream tokens = new CommonTokenStream(lexer);
+//			SQLParser parser = new SQLParser(tokens);
+//			ParseTree tree = parser.exp();  // parse exp; start a program
+//			DBVisitor visitor = new DBVisitor();
+//			visitor.setNombreBD(nombreBD);
+//			visitor.setPathBase(pathBase);
+//			visitor.setNombreTabla(nombreTabla);
+//			visitor.visit(tree);
+//			SQLParser.ExpContext checkContext = visitor.getContextExp();
+//			if (visitExp(checkContext).equals("false")){
+//				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+checkContext.getText()+"> no cumple la condicion <"+checkExpressions.get(j)+">");
+//				return "_error_";
+//			}
+//		}
+//		evaluandoExp=false;
+//		//Termina revision de check
+//		
+//		//TODO lo alegre
+//		int filasAfectadas = 0;
+//		SQLParser.ExpContext exp = null;
+//		boolean esTodo = false;
+//		try{
+//			exp = ctx.exp();
+//		}
+//		catch (Exception e){
+//		}
+//		if(exp==null){
+//			esTodo = true;
+//		}
+//		
+//
+//		ArrayList<ArrayList<String>> queryTabla = archivoXMLTabla.queryColumns(columnasTabla);
+//		//
+//		ArrayList<ArrayList<String>> modificados = new ArrayList<ArrayList<String>>();
+//		if (esTodo){
+//			modificados = queryTabla;
+//		}
+//		else{
+//			visit(exp);
+//			for(int j=0;j<queryTabla.size();j++){
+//				if (checkTupla(queryTabla.get(j), columnasTabla, exp)){
+//					modificados.add(queryTabla.get(j));
+//				}
+//			}
+//		}
+//		//columnas = columnasTabla;
+//		//data = modificados;
+//		
+//		ArrayList<ArrayList<String>> nuevos = new ArrayList<ArrayList<String>>();
+//		
+//		
+//		
+//		for(int i=0;i<modificados.size();i++){
+//			ArrayList<String> tuplaVieja = modificados.get(i);
+//			ArrayList<String> tuplaNueva = new ArrayList<String>();
+//			
+//			for(int k=0;k<tuplaVieja.size();k++){
+//				tuplaNueva.add(tuplaVieja.get(k));
+//			}
+//			
+//			for(int j=0;j<datos.size();j++){
+//				tuplaNueva.set(columnasTabla.indexOf(columnasAsignacion.get(j)), datos.get(j));
+//			}
+//			nuevos.add(tuplaNueva);
+//		}
+//		
+//		//revisar que lo que se inserta no sean PKs repetidas
+//		if(nuevos.size()>1){
+//			for(int j=0;j<columnasAsignacion.size();j++){
+//				if(idColsPK.contains(columnasAsignacion.get(j))){
+//					agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+columnasAsignacion.get(j)+"> es una llave primaria y hay mas de un elemento que cumple la condicion.");
+//					return "_error_";
+//				}
+//			}
+//		}
+//		
+//		
+//		//TODO revisar que lo que se inserta sea fk (en caso sea)
+//		
+//		
+//		for(int i=0;i<nuevos.size();i++){
+//			archivoXMLTabla.updateTupla(columnasTabla,modificados.get(i),nuevos.get(i));
+//		}
+//		contadorUpdates = nuevos.size(); 
 		return "";
 	}
 	
@@ -1625,6 +1941,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		visitor.setNombreBD(nombreBD);
 		visitor.setPathBase(pathBase);
 		visitor.setNombreTabla(nombreTabla);
+		visitor.setArchivoXML(archivoXML);
+		visitor.setEvaluandoExp(true);
 		visitor.visit(tree);
 		SQLParser.ExpContext checkContext = visitor.getContextExp();
 		if (visitExp(checkContext).equals("false")){
@@ -1635,6 +1953,68 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			return true;
 		}
 	}
+	
+	public boolean checkTuplaSelect(ArrayList<String> tupla, ArrayList<String> columnasQuery, ArrayList<String> columnasPunto, SQLParser.ExpContext expresion){
+		evaluandoExp=true;
+		//Ordenar columnas para el replace
+		ArrayList<String> sortedDatos = new ArrayList<String>();
+		ArrayList<String> sortedColumnsQ = new ArrayList<String>();
+		ArrayList<String> sortedColumnsP = new ArrayList<String>();
+		int min=0;
+		for (int k=0;k<columnasQuery.size();k++){
+			if(columnasQuery.get(k).length()<=min){
+				sortedColumnsQ.add(columnasQuery.get(k));
+				sortedColumnsP.add(columnasPunto.get(k));
+				min=sortedColumnsQ.get(k).length();
+			}
+			else{
+				sortedColumnsQ.add(0,columnasQuery.get(k));
+				sortedColumnsP.add(0,columnasPunto.get(k));
+			}
+		}
+		
+		for (int k=0;k<sortedColumnsQ.size();k++){
+			sortedDatos.add(tupla.get(columnasQuery.indexOf(sortedColumnsQ.get(k))));
+		}
+		
+		
+		String chexp =  expresion.getText();
+		
+		for (int k=0;k<sortedColumnsP.size();k++){
+			if (chexp.contains(sortedColumnsP.get(k))){
+				chexp = chexp.replace(sortedColumnsP.get(k), sortedDatos.get(k));
+			}
+		}
+		for (int k=0;k<sortedColumnsQ.size();k++){
+			if (chexp.contains(sortedColumnsQ.get(k))){
+				chexp = chexp.replace(sortedColumnsQ.get(k), sortedDatos.get(k));
+			}
+		}
+		
+		
+		
+		ANTLRInputStream input = new ANTLRInputStream(chexp);
+		SQLLexer lexer = new SQLLexer(input);
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		SQLParser parser = new SQLParser(tokens);
+		ParseTree tree = parser.exp();  // parse exp; start a program
+		DBVisitor visitor = new DBVisitor();
+		visitor.setNombreBD(nombreBD);
+		visitor.setPathBase(pathBase);
+		visitor.setNombreTabla(nombreTabla);
+		visitor.setArchivoXML(archivoXML);
+		visitor.setEvaluandoExp(true);
+		visitor.visit(tree);
+		SQLParser.ExpContext checkContext = visitor.getContextExp();
+		if (visitExp(checkContext).equals("false")){
+			evaluandoExp=false;
+			return false;
+		}else{
+			evaluandoExp=false;
+			return true;
+		}
+	}
+	
 	
 	public ArrayList<ArrayList<ArrayList<String>>> crossProduct(ArrayList<String> tablas){
 		
@@ -1669,13 +2049,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 			tuplas = new ArrayList<ArrayList<String>>();
 			tuplas.addAll(temp);
+			columnas.add(colsTabla);
 			
-			
-		}
-		for(int i=0;i<tuplas.size();i++){
-			System.out.println(tuplas.get(i).toString());
 		}
 		
+		result.add(columnas);
 		result.add(tuplas);
 		return result;
 	}

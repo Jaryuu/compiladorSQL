@@ -909,6 +909,20 @@ public class XMLFile {
 		return databases;
 	}
 	
+	public ArrayList<String> showTables(){
+		NodeList list = rootElement.getElementsByTagName("tabla");
+		ArrayList<String> tablas = new ArrayList<String>();
+		org.w3c.dom.Node nodo;
+		for (int i = 0; i < list.getLength(); i++) {
+			nodo =  list.item(i);
+			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+				Element eElement = (Element) nodo;
+				tablas.add(eElement.getElementsByTagName("nombreTabla").item(0).getTextContent());
+			}
+		}
+		return tablas;
+	}
+	
 	public ArrayList<ArrayList<String>> queryColumns(ArrayList<String> columns){
 		ArrayList<ArrayList<String>> query = new ArrayList<ArrayList<String>>();
 		NodeList list = rootElement.getElementsByTagName("tupla");
