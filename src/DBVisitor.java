@@ -11,6 +11,7 @@ import javax.xml.soap.Node;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.w3c.dom.NodeList;
 
@@ -493,10 +494,22 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitExpGL(SQLParser.ExpGLContext ctx) {
 		String returnExp4 = visit(ctx.exp4());
 		String returnExpUni = visit(ctx.unifactor());
+		float fExp4 = 0.0f, fExpUni = 0.0f;		
+		try{
+			fExp4 = Float.parseFloat(returnExp4);
+			fExpUni = Float.parseFloat(returnExpUni);
+		}catch (Exception e){
+			if (returnExp4.equals(returnExpUni)){
+				return "boolean";
+			}
+			else{
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
+				return "_error_";
+			}
+		}
 		if (evaluandoExp){
-			
 			if (ctx.relationalExpGL().getText().equals("<")){
-				if (returnExp4.compareTo(returnExpUni)<0){
+				if (fExp4 < fExpUni){
 					return "true";
 				}
 				else{
@@ -504,7 +517,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				}
 			}
 			else if (ctx.relationalExpGL().getText().equals(">")){
-				if (returnExp4.compareTo(returnExpUni)>0){
+				
+				if (fExp4 > fExpUni){
 					return "true";
 				}
 				else{
@@ -512,7 +526,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				}
 			}
 			else if (ctx.relationalExpGL().getText().equals("<=")){
-				if (returnExp4.compareTo(returnExpUni)<=0){
+				if (fExp4 <= fExpUni){
 					return "true";
 				}
 				else{
@@ -520,7 +534,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				}
 			}
 			else if (ctx.relationalExpGL().getText().equals(">=")){
-				if (returnExp4.compareTo(returnExpUni)>=0){
+				if (fExp4 >= fExpUni){
 					return "true";
 				}
 				else{
@@ -573,7 +587,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			if (returnExp2.equals("boolean") && returnExp3.equals("boolean")){
 				return "boolean";
 			}
-			else{
+			else{			
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
 				return "_error_";
 			}
@@ -634,7 +648,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 		}
 		
-		if (colType.equals("None")){
+		if (colType.equals("None")){			
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "la columna <"+ctx.getText()+"> no existe");
 			return "_error_";
 		}
@@ -648,6 +662,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitExpAnd(SQLParser.ExpAndContext ctx) {
 		String returnExpr = visit(ctx.expr());
 		String returnExp2 = visit(ctx.exp2());
+//		System.out.println("1. "+returnExpr+" - "+returnExp2);
 		if(evaluandoExp){
 			if (returnExpr.equals("true") && returnExp2.equals("true")){
 				return "true";
@@ -661,6 +676,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				return "";
 			}
 			else{
+				System.out.println(ctx.expr().getText());
+				System.out.println(ctx.exp2().getText());
+				System.out.println("2. "+returnExpr+" - "+returnExp2);
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
 				return "_error_";
 			}
@@ -1880,7 +1898,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		
 		
-		String chexp =  expresion.getText();
+		
+		int a = expresion.start.getStartIndex();
+	    int b = expresion.stop.getStopIndex();
+	    Interval interval = new Interval(a,b);	
+	    String chexp = expresion.start.getInputStream().getText(interval);
 		
 		for (int k=0;k<sortedColumnsP.size();k++){
 			if (chexp.contains(sortedColumnsP.get(k))){
