@@ -1501,10 +1501,15 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			return "_error_";
 		}
 		
-		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);		
+		if (!archivoXMLTabla.getNombre().equals(nombreTabla)){
+			archivoXMLTabla = new XMLFile(nombreTabla, pathCarpeta);
+		}
+		if (!archivoXML.getNombre().equals("Metadata."+nombreBD)){
+			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+		}
+				
 		
 		ArrayList<String> columnasTabla = archivoXML.listarColumnas(nombreTabla);
-		ArrayList<String> tiposTabla = archivoXML.listarTiposTabla(columnasTabla, nombreTabla);
 		ArrayList<String> tablas = archivoXML.showTables();
 		
 //		//Revisar llaves foraneas  (que no sea FK de otra tabla) 4?
@@ -1531,144 +1536,41 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		
 		
-//		for(int i=0;i<columnasAsignacion.size();i++){
-//			for(int j=0;j<metaTabla.size();j++){
-//				//Verificar si esa columna tiene FK
-//				if (columnasAsignacion.get(i).equals(metaTabla.get(j).get(0)) && !metaTabla.get(j).get(4).equals("")){
-//					String col = columnasAsignacion.get(i);
-//					int indiceCol = columnasAsignacion.indexOf(col);
-//					String dato = datos.get(indiceCol);
-//					String referenciaCompleta = metaTabla.get(j).get(4);
-//					String[] ref = referenciaCompleta.split("\\.");
-//					String refTabla = ref[0];
-//					ArrayList<String> refColumna = new ArrayList<String>();
-//					refColumna.add(ref[1]);
-//					XMLFile archivoXMLRef = new XMLFile(refTabla, pathCarpeta);
-//					ArrayList<ArrayList<String>> tmpQueryFK = archivoXMLRef.queryColumns(refColumna);
-//					if (!tmpQueryFK.contains(dato)){
-//						agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+metaTabla.get(j).get(4)+"> no contiene el valor <"+dato+">");
-//						return "_error_";
-//					}
-//					
-//				}
-//			}
-//		}
-//		
-//		evaluandoExp=true;
-//		//Ordenar columnas para el replace
-//		ArrayList<String> sortedDatos = new ArrayList<String>();
-//		ArrayList<String> sortedColumns = new ArrayList<String>();
-//		int min=0;
-//		for (int k=0;k<columnasAsignacion.size();k++){
-//			if(columnasAsignacion.get(k).length()<=min){
-//				sortedColumns.add(columnasAsignacion.get(k));
-//				min=columnasAsignacion.get(k).length();
-//			}
-//			else{
-//				sortedColumns.add(0,columnasAsignacion.get(k));
-//			}
-//		}
-//		
-//		for (int k=0;k<sortedColumns.size();k++){
-//			sortedDatos.add(datos.get(columnasAsignacion.indexOf(sortedColumns.get(k))));
-//		}
-//		
-//		
-//		for(int j=0;j<checkExpressions.size();j++){
-//			String chexp =  checkExpressions.get(j);
-//			for (int k=0;k<sortedColumns.size();k++){
-//				if (chexp.contains(sortedColumns.get(k))){
-//					
-//					chexp = chexp.replace(sortedColumns.get(k), sortedDatos.get(k));
-//				}
-//			}
-//			
-//			ANTLRInputStream input = new ANTLRInputStream(chexp);
-//			SQLLexer lexer = new SQLLexer(input);
-//			CommonTokenStream tokens = new CommonTokenStream(lexer);
-//			SQLParser parser = new SQLParser(tokens);
-//			ParseTree tree = parser.exp();  // parse exp; start a program
-//			DBVisitor visitor = new DBVisitor();
-//			visitor.setNombreBD(nombreBD);
-//			visitor.setPathBase(pathBase);
-//			visitor.setNombreTabla(nombreTabla);
-//			visitor.visit(tree);
-//			SQLParser.ExpContext checkContext = visitor.getContextExp();
-//			if (visitExp(checkContext).equals("false")){
-//				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+checkContext.getText()+"> no cumple la condicion <"+checkExpressions.get(j)+">");
-//				return "_error_";
-//			}
-//		}
-//		evaluandoExp=false;
-//		//Termina revision de check
-//		
-//		//TODO lo alegre
-//		int filasAfectadas = 0;
-//		SQLParser.ExpContext exp = null;
-//		boolean esTodo = false;
-//		try{
-//			exp = ctx.exp();
-//		}
-//		catch (Exception e){
-//		}
-//		if(exp==null){
-//			esTodo = true;
-//		}
-//		
-//
-//		ArrayList<ArrayList<String>> queryTabla = archivoXMLTabla.queryColumns(columnasTabla);
-//		//
-//		ArrayList<ArrayList<String>> modificados = new ArrayList<ArrayList<String>>();
-//		if (esTodo){
-//			modificados = queryTabla;
-//		}
-//		else{
-//			visit(exp);
-//			for(int j=0;j<queryTabla.size();j++){
-//				if (checkTupla(queryTabla.get(j), columnasTabla, exp)){
-//					modificados.add(queryTabla.get(j));
-//				}
-//			}
-//		}
-//		//columnas = columnasTabla;
-//		//data = modificados;
-//		
-//		ArrayList<ArrayList<String>> nuevos = new ArrayList<ArrayList<String>>();
-//		
-//		
-//		
-//		for(int i=0;i<modificados.size();i++){
-//			ArrayList<String> tuplaVieja = modificados.get(i);
-//			ArrayList<String> tuplaNueva = new ArrayList<String>();
-//			
-//			for(int k=0;k<tuplaVieja.size();k++){
-//				tuplaNueva.add(tuplaVieja.get(k));
-//			}
-//			
-//			for(int j=0;j<datos.size();j++){
-//				tuplaNueva.set(columnasTabla.indexOf(columnasAsignacion.get(j)), datos.get(j));
-//			}
-//			nuevos.add(tuplaNueva);
-//		}
-//		
-//		//revisar que lo que se inserta no sean PKs repetidas
-//		if(nuevos.size()>1){
-//			for(int j=0;j<columnasAsignacion.size();j++){
-//				if(idColsPK.contains(columnasAsignacion.get(j))){
-//					agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+columnasAsignacion.get(j)+"> es una llave primaria y hay mas de un elemento que cumple la condicion.");
-//					return "_error_";
-//				}
-//			}
-//		}
-//		
-//		
-//		//TODO revisar que lo que se inserta sea fk (en caso sea)
-//		
-//		
-//		for(int i=0;i<nuevos.size();i++){
-//			archivoXMLTabla.updateTupla(columnasTabla,modificados.get(i),nuevos.get(i));
-//		}
-//		contadorUpdates = nuevos.size(); 
+		//lo alegre
+		int filasAfectadas = 0;
+		SQLParser.ExpContext exp = null;
+		boolean esTodo = false;
+		try{
+			exp = ctx.exp();
+		}
+		catch (Exception e){
+		}
+		if(exp==null){
+			esTodo = true;
+		}
+		System.out.println(archivoXMLTabla.getNombre());
+		ArrayList<ArrayList<String>> queryTabla = archivoXMLTabla.queryColumns(columnasTabla);
+		
+		if (esTodo){
+			for(int j=0;j<queryTabla.size();j++){
+				archivoXMLTabla.deleteTupla(columnasTabla, queryTabla.get(j));
+				filasAfectadas++;
+				//delete
+			}
+			
+		}
+		else{
+			visit(exp);
+			for(int j=0;j<queryTabla.size();j++){
+				if (checkTupla(queryTabla.get(j), columnasTabla, exp)){
+					archivoXMLTabla.deleteTupla(columnasTabla, queryTabla.get(j));
+					filasAfectadas++;
+					//delete
+				}
+			}
+		}
+		
+		contadorDeletes = filasAfectadas; 
 		return "";
 	}
 	

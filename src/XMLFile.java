@@ -926,8 +926,6 @@ public class XMLFile {
 	public ArrayList<ArrayList<String>> queryColumns(ArrayList<String> columns){
 		ArrayList<ArrayList<String>> query = new ArrayList<ArrayList<String>>();
 		NodeList list = rootElement.getElementsByTagName("tupla");
-		
-			
 			for (int j = 0; j < list.getLength(); j++) {
 				ArrayList<String> tupla = new ArrayList<String>();
 				org.w3c.dom.Node nodo =  list.item(j);
@@ -969,5 +967,33 @@ public class XMLFile {
 		}
 		createFile();
 	}
+	
+	public void deleteTupla(ArrayList<String> columnas, ArrayList<String> tupla){
+		NodeList nodes = doc.getElementsByTagName("tupla");
+		for (int j = 0; j < nodes.getLength(); j++) {
+			org.w3c.dom.Node nodo =  nodes.item(j);
+			if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+	           Element eElement = (Element) nodo;
+	           if (nodo.getNodeType() == Node.ELEMENT_NODE) {
+	        	   ArrayList<Boolean> esLaTupla= new ArrayList<Boolean>();
+	        	   for (int k = 0; k < columnas.size(); k++) {
+	        		   if (eElement.getElementsByTagName(columnas.get(k)).item(0).getTextContent().equals(tupla.get(k))){
+	        			   esLaTupla.add(true);
+			           }
+	        		   else{
+	        			   esLaTupla.add(false);
+	        		   }
+	        		   
+		           }
+	        	   if(!esLaTupla.contains(false)){
+	        		   System.out.println(tupla);
+	        		   //Delete
+	        	   }  
+				}
+			}
+		}
+		createFile();
+	}
+	
 	
 }
