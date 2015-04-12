@@ -462,11 +462,14 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 	
 	public String visitCCheck(SQLParser.CCheckContext ctx){
-		// Esto se va a guardar check-nombreCheck-stringCheck
+		// Esto se va a guardar check-nombreCheck-stringCheck TODO
 		if (visit(ctx.exp()).equals("_error_")){			
 			return "__error__";
 		}		
-		String stringCheck = ctx.exp().getText();
+		int a = ctx.start.getStartIndex();
+	    int b = ctx.stop.getStopIndex();
+	    Interval interval = new Interval(a,b);	
+		String stringCheck = ctx.start.getInputStream().getText(interval);
 		String nombre = ctx.ID().getText();
 		if (listaConstraints.contains(nombre)){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Ya existe la constraint <"+nombre+">");
