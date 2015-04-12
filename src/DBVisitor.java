@@ -149,6 +149,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		insertandoDatos = false;
 		contadorInserts=0;
 		contadorUpdates=0;
+		contadorDeletes=0;
 		if (!success) {
 		    //System.out.println("Ya existe la carpeta");
 		    archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
@@ -163,6 +164,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		
 		if (contadorUpdates>0){
 			mensajes.add("UPDATE ("+contadorUpdates+") con exito");
+		}
+		if (contadorDeletes>0){
+			mensajes.add("DELETE ("+contadorDeletes+") con exito");
 		}
 		return "";
 		
@@ -1602,7 +1606,6 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		if(exp==null){
 			esTodo = true;
 		}
-		System.out.println(archivoXMLTabla.getNombre());
 		ArrayList<ArrayList<String>> queryTabla = archivoXMLTabla.queryColumns(columnasTabla);
 		
 		if (esTodo){
