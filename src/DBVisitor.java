@@ -497,57 +497,88 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitExpGL(SQLParser.ExpGLContext ctx) {
 		String returnExp4 = visit(ctx.exp4());
 		String returnExpUni = visit(ctx.unifactor());
-		float fExp4 = 0.0f, fExpUni = 0.0f;		
-		try{
-			fExp4 = Float.parseFloat(returnExp4);
-			fExpUni = Float.parseFloat(returnExpUni);
-		}catch (Exception e){
-			if (returnExp4.equals(returnExpUni)){
-				return "boolean";
-			}
-			else{
-				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
-				return "_error_";
-			}
-		}
+		
+		
 		if (evaluandoExp){
-			if (ctx.relationalExpGL().getText().equals("<")){
-				if (fExp4 < fExpUni){
-					return "true";
+			float fExp4 = 0.0f, fExpUni = 0.0f;
+			try{
+				fExp4 = Float.parseFloat(returnExp4);
+				fExpUni = Float.parseFloat(returnExpUni);
+				if (ctx.relationalExpGL().getText().equals("<")){
+					if (fExp4 < fExpUni){
+						return "true";
+					}
+					else{
+						return "false";
+					}
 				}
-				else{
-					return "false";
+				else if (ctx.relationalExpGL().getText().equals(">")){
+					
+					if (fExp4 > fExpUni){
+						return "true";
+					}
+					else{
+						return "false";
+					}
+				}
+				else if (ctx.relationalExpGL().getText().equals("<=")){
+					if (fExp4 <= fExpUni){
+						return "true";
+					}
+					else{
+						return "false";
+					}
+				}
+				else if (ctx.relationalExpGL().getText().equals(">=")){
+					if (fExp4 >= fExpUni){
+						return "true";
+					}
+					else{
+						return "false";
+					}
 				}
 			}
-			else if (ctx.relationalExpGL().getText().equals(">")){
-				
-				if (fExp4 > fExpUni){
-					return "true";
+			catch(Exception e){
+				if (ctx.relationalExpGL().getText().equals("<")){
+					if (returnExp4.compareTo(returnExpUni)<0){
+						return "true";
+					}
+					else{
+						return "false";
+					}
 				}
-				else{
-					return "false";
+				else if (ctx.relationalExpGL().getText().equals(">")){
+					
+					if (returnExp4.compareTo(returnExpUni)>0){
+						return "true";
+					}
+					else{
+						return "false";
+					}
+				}
+				else if (ctx.relationalExpGL().getText().equals("<=")){
+					if (returnExp4.compareTo(returnExpUni)<=0){
+						return "true";
+					}
+					else{
+						return "false";
+					}
+				}
+				else if (ctx.relationalExpGL().getText().equals(">=")){
+					if (returnExp4.compareTo(returnExpUni)>=0){
+						return "true";
+					}
+					else{
+						return "false";
+					}
 				}
 			}
-			else if (ctx.relationalExpGL().getText().equals("<=")){
-				if (fExp4 <= fExpUni){
-					return "true";
-				}
-				else{
-					return "false";
-				}
-			}
-			else if (ctx.relationalExpGL().getText().equals(">=")){
-				if (fExp4 >= fExpUni){
-					return "true";
-				}
-				else{
-					return "false";
-				}
-			}
+			
+			
 			return "";
 		}
 		else{
-			if (returnExp4.equals(returnExpUni)){
+			if (returnExpUni.equals(returnExp4) || returnExpUni.equals("null") || (returnExpUni.equals("int") && returnExp4.equals("float")) || (returnExpUni.equals("float") && returnExp4.equals("int"))){
 				return "boolean";
 			}
 			else{
@@ -715,6 +746,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		String returnExp4 = visit(ctx.exp4());
 		if(evaluandoExp){
 			if (ctx.relationalExpEq().getText().equals("=")){
+				//TODO cambiar al try de parseo
 				return String.valueOf(returnExp3.equals(returnExp4));
 			}
 			else{
@@ -723,7 +755,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		
 		else{
-			if (returnExp3.equals(returnExp4) || returnExp4.equals("null")){
+			//TODO parseo implicito de int<-->float
+			if (returnExp3.equals(returnExp4) || returnExp4.equals("null") || (returnExp3.equals("int") && returnExp4.equals("float")) || (returnExp3.equals("float") && returnExp4.equals("int"))){
 				return "boolean";
 			}
 			else{	
