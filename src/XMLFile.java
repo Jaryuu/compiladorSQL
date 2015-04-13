@@ -866,6 +866,21 @@ public class XMLFile {
 		return false;
 	}
 	
+	public int countRegistros(String nombreTabla){
+		int count=0;
+		NodeList listaNodos = rootElement.getElementsByTagName("tabla");
+		for (int x=0; x<listaNodos.getLength(); x++){
+			org.w3c.dom.Node nodoTabla =  listaNodos.item(x);
+			if (nodoTabla.getNodeType() == Node.ELEMENT_NODE){
+				Element tElement = (Element) nodoTabla;
+				if (tElement.getElementsByTagName("nombreTabla").item(0).getTextContent().equals(nombreTabla)){
+					count = Integer.parseInt(tElement.getElementsByTagName("cantidadRegistros").item(0).getTextContent());
+				}
+			}
+		}
+		return count;
+	}
+	
 	public void sumar1Atributo (ArrayList<String> adentrar, String nombreNombrar, String nombre, String atributoMas1){
 		ArrayList<NodeList> listasNodos = lookupNodeList(null,adentrar, 0);
 		for (int x=0; x<listasNodos.size(); x++){

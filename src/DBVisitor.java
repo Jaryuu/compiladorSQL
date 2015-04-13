@@ -161,7 +161,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		boolean error = false;
 		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
 			String strVisitar = visit(ctx.getChild(visitarNum));
-			if (strVisitar.equals("_error_")){
+			if (strVisitar != null && strVisitar.equals("_error_")){
 				error = true;
 				break;
 			}
@@ -282,9 +282,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitUseDB(SQLParser.UseDBContext ctx) {
 		nombreBD = ctx.ID().getText();
 		File folder = new File(pathBase+"\\"+nombreBD);
-		if (!folder.exists()){
-			nombreBD = "";
+		if (!folder.exists()){			
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la base de datos <"+nombreBD+">");
+			nombreBD = "";
 			return "_error_";
 		}		
 		return "";
@@ -415,6 +415,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 	
 	// En datos vienen los ids de las columnas
+	// listaConstraints viene los nombres de las constraints
 	public String visitCPK(SQLParser.CPKContext ctx){
 		ArrayList<String> ids = new ArrayList();
 		String nombreC = ctx.ID(0).getText();
@@ -431,12 +432,41 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			ids.add(ctx.ID(y).getText());
 		}
 		listaConstraints.add(nombreC);
+		if (archivoXML.countRegistros(nombreTabla)>0){
+			// Revisamos los datos actuales de la tabla para que la pk no sea conflictiva
+			// Revisamos que no sea null
+			archivoXMLTabla = new XMLFile(nombreTabla, pathBase+"\\"+nombreBD);
+			ArrayList<String> idColsPK = ids;		
+			ArrayList<ArrayList<String>> tmpQuery = archivoXMLTabla.queryColumns(idColsPK);
+						
+			
+			for (int x=0; x<tmpQuery.size(); x++){
+				if (tmpQuery.get(x).contains("null")){
+					agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Las columnas <"+idColsPK.toString()+"> no deben ser null");
+					return "_error_";
+				}else{
+					ArrayList<String> tuplaPK = new ArrayList<String>();
+					for (int y=0; y<tmpQuery.get(x).size(); y++){
+						tuplaPK.add(tmpQuery.get(x).get(y));
+					}
+					// Revisamos que no se repita
+					if (x+1<tmpQuery.size()){
+						if (tmpQuery.subList(x+1, tmpQuery.size()).contains(tuplaPK)){
+							agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Las columnas <"+idColsPK.toString()+"> deben tener valores unicos, la llave primaria <"+tuplaPK.toString()+"> ya existe");
+							return "_error_";
+						}
+					}
+				}
+			}
+		}
+		
 		// Los agregamos al constraints
 		archivoXML.agregarConstraint(nombreTabla, "primaryKey", nombreC, ids);
 		return "";
 	}
 	
 	// En datos vienen los ids de las columnas
+	// En nombre tabla va el nombre de la tabla
 	public String visitCFK(SQLParser.CFKContext ctx){
 		// Se revisa si se tiene la mista cantidad de ids referencias, ids
 		if (ctx.ID().size() != ctx.references().ID().size()){
@@ -459,7 +489,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 			colIds.add(ctx.ID(y).getText());
 		}
-		ArrayList<String> referencias = new ArrayList();
+		ArrayList<String> referencias = new ArrayList<String>();
 		String idTablaRef = ctx.references().ID(0).getText();
 		// Revisamos que exista la tabla en esta base de datos
 		File existe = new File(pathBase+"\\"+nombreBD+"\\"+idTablaRef+".XML");
@@ -467,7 +497,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+idTablaRef+">");
 			return "_error_";
 		}
-		
+		// Que haya referencias
 		if (ctx.references().ID().size()<=1){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se hace referencia a ninguna tabla");
 			return "_error_";
@@ -476,6 +506,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		for (int y=1; y<ctx.references().ID().size();y++){
 			String idAct = ctx.references().ID(y).getText();
 			if (! archivoXML.existeCol(idTablaRef, idAct)){
+				// Que exista la columna
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la columna <"+idAct+"> en tabla <"+idTablaRef+">");
 				return "_error_";
 			}
@@ -484,8 +515,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 					if (archivoXML.tipoCol(idTablaRef,idAct).startsWith("char")){
 						mensajes.add("la columna <"+idAct+"> en tabla <"+idTablaRef+"> no tiene el mismo tamaño de char que la columna <"+colIds.get(y-1)+">");
 						return "_error_";	
-					}
-					else{
+					}else{
 						mensajes.add("la columna <"+idAct+"> en tabla <"+idTablaRef+"> no tiene el mismo tipo que la columna <"+colIds.get(y-1)+">");
 						return "_error_";	
 					}
@@ -494,6 +524,72 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			referencias.add(idTablaRef+"."+idAct);
 		}
 		listaConstraints.add(nombreC);
+		// Revisamos que no sea conflictiva la constraint
+		// Revisamos los datos de la tabla actual
+		for (int w=0; w<colIds.size(); w++){
+			if (archivoXML.countRegistros(nombreTabla)>0){
+				// Revisamos los datos actuales de la tabla para que la pk no sea conflictiva
+				// Revisamos que no sea null
+				archivoXMLTabla = new XMLFile(nombreTabla, pathBase+"\\"+nombreBD);
+				ArrayList<String> idCol = new ArrayList<String>();
+				idCol.add(colIds.get(w));
+				ArrayList<ArrayList<String>> tmpQuery = archivoXMLTabla.queryColumns(idCol);
+				for (int x=0; x<tmpQuery.size(); x++){
+					if (tmpQuery.get(x).contains("null")){
+						agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Las columnas <"+idCol.toString()+"> no deben ser null");
+						return "_error_";
+					}else{
+						ArrayList<String> tuplaPK = new ArrayList<String>();
+						for (int y=0; y<tmpQuery.get(x).size(); y++){
+							tuplaPK.add(tmpQuery.get(x).get(y));
+						}
+						// Revisamos que no se repita
+						if (x+1<tmpQuery.size()){
+							if (tmpQuery.subList(x+1, tmpQuery.size()).contains(tuplaPK)){
+								agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Las columnas <"+idCol.toString()+"> deben tener valores unicos, la llave <"+tuplaPK.toString()+"> ya existe");
+								return "_error_";
+							}
+						}
+					}
+				}
+			}
+		}
+		// Revisamos las referencias		
+		for (int w=0; w<referencias.size(); w++){
+			String refIgual = referencias.get(w);
+			String[] tbCol = refIgual.split("\\.");
+			nombreTabla = tbCol[0];
+			String nombreCol = tbCol[1];
+			if (archivoXML.countRegistros(nombreTabla)>0){
+				// Revisamos los datos actuales de la tabla para que la pk no sea conflictiva
+				// Revisamos que no sea null
+				archivoXMLTabla = new XMLFile(nombreTabla, pathBase+"\\"+nombreBD);
+				ArrayList<String> idCol = new ArrayList<String>();
+				idCol.add(nombreCol);
+				ArrayList<ArrayList<String>> tmpQuery = archivoXMLTabla.queryColumns(idCol);
+				for (int x=0; x<tmpQuery.size(); x++){
+					if (tmpQuery.get(x).contains("null")){
+						agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Las columnas <"+idCol.toString()+"> no deben ser null");
+						return "_error_";
+					}else{
+						ArrayList<String> tuplaPK = new ArrayList<String>();
+						for (int y=0; y<tmpQuery.get(x).size(); y++){
+							tuplaPK.add(tmpQuery.get(x).get(y));
+						}
+						// Revisamos que no se repita
+						if (x+1<tmpQuery.size()){
+							if (tmpQuery.subList(x+1, tmpQuery.size()).contains(tuplaPK)){
+								agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Las columnas <"+idCol.toString()+"> deben tener valores unicos, la llave primaria <"+tuplaPK.toString()+"> ya existe");
+								return "_error_";
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		
+		
 		// Los agregamos al constraints
 		archivoXML.agregarConstraint(nombreTabla, "foreignKey", nombreC, colIds, referencias);		
 		return "";
@@ -975,8 +1071,13 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			if (! f.exists()){
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "No existe la tabla <"+nombreTabla+">");
 				return "_error_";
-			}	
+			}									
 			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+			
+			// Llenamos las listas que se usan
+			datos = archivoXML.listarColumnas(nombreTabla);
+			listaConstraints = archivoXML.listarConstraintsTabla(nombreTabla);
+			
 			// Visitamos table action
 			for (int i=0; i<ctx.tableAction().size(); i++){
 				if (visit(ctx.tableAction(i)).equals("_error_")){
@@ -1211,7 +1312,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 
 		//Revisar que el PK sea unico
 		ArrayList<ArrayList<String>> tmpQuery = archivoXMLTabla.queryColumns(idColsPK);
-		if(tmpQuery.contains(tuplaPK)){
+		if(tuplaPK.size()>0 && tmpQuery.contains(tuplaPK)){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Las columnas <"+idColsPK.toString()+"> deben tener valores unicos, la llave primaria <"+tuplaPK.toString()+"> ya existe");
 			return "_error_";
 		}
