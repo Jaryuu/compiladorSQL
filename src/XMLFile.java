@@ -886,6 +886,27 @@ public class XMLFile {
 		}
 	}
 	
+	//Porque no tengo ganas de modificar el de sumar jajaja
+	public void restarAtributo (ArrayList<String> adentrar, String nombreNombrar, String nombre, String atributoMas1,int cantidadFilas){
+		ArrayList<NodeList> listasNodos = lookupNodeList(null,adentrar, 0);
+		for (int x=0; x<listasNodos.size(); x++){
+			NodeList list = listasNodos.get(x);
+			for (int y=0; y<list.getLength(); y++){
+				org.w3c.dom.Node nodo =  list.item(y);
+				if (nodo.getNodeType() == Node.ELEMENT_NODE) {	           
+		           Element eElement = (Element) nodo;
+		           if (eElement.getElementsByTagName(nombreNombrar).item(0).getTextContent().equals(nombre)){
+		        	   String numero = eElement.getElementsByTagName(atributoMas1).item(0).getTextContent();
+		        	   int sumado = Integer.parseInt(numero)-cantidadFilas;
+		        	   eElement.getElementsByTagName(atributoMas1).item(0).setTextContent(String.valueOf(sumado));
+		        	   createFile();
+		        	   break;
+		           }
+				}
+			}
+		}
+	}
+	
 	public void cambiarNombre(String nuevo){
 		NodeList nodes = doc.getElementsByTagName(nombre);
 		for (int i = 0; i < nodes.getLength(); i++) {

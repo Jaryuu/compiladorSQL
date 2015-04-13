@@ -1651,7 +1651,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			filasAfectadas++;
 		}
 		
-		contadorDeletes = filasAfectadas; 
+		contadorDeletes = filasAfectadas;
+		ArrayList<String> adentrar = new ArrayList<String>();
+		adentrar.add("tabla");
+		archivoXML.restarAtributo(adentrar, "nombreTabla", nombreTabla, "cantidadRegistros",filasAfectadas);
+		
 		return "";
 	}
 	
