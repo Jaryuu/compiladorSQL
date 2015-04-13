@@ -157,7 +157,16 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 		}
 		
-		super.visitTodo(ctx);
+//		super.visitTodo(ctx);
+		boolean error = false;
+		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
+			String strVisitar = visit(ctx.getChild(visitarNum));
+			if (strVisitar.equals("_error_")){
+				error = true;
+				break;
+			}
+		}
+		
 		if (contadorInserts>0){
 			mensajes.add("INSERT ("+contadorInserts+") con exito");
 		}
@@ -167,10 +176,25 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		if (contadorDeletes>0){
 			mensajes.add("DELETE ("+contadorDeletes+") con exito");
+		}		
+		if (error ){
+			return "_error_";
+		}else{
+			return "";
 		}
-		return "";
 		
 	}
+	
+	public String visitCasiTodo(SQLParser.CasitodoContext ctx){
+		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
+			String strVisitar = visit(ctx.getChild(visitarNum));
+			if (strVisitar.equals("_error_")){
+				return "_error_";
+			}
+		}
+		return "";
+	}
+
 	
 	public String visitCreateDB(SQLParser.CreateDBContext ctx){
 		String nuevaBD = ctx.ID().getText();		
@@ -365,7 +389,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			archivoXML.addTagConstraint(nombreTabla);	
 			
 			// Visitamos lo demas
-			visit(ctx.constraints());
+			if (visit(ctx.constraints()).equals("_error_")){
+				return "_error_";
+			}
 			
 			// Creamos el archivo XML para esta tabla
 			archivoXML = new XMLFile(nombreTabla, pathCarpeta);			
@@ -380,7 +406,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		listaConstraints = archivoXML.listarConstraintsTabla(nombreTabla);
 		// En nombre tabla llevamos el nombre de la tabla y nombreBD llevamos el nombre de la base de datos
 		for (int y=0; y<ctx.constraint().size(); y++){
-			visit(ctx.constraint(y));
+			String strVisit = visit(ctx.constraint(y));
+			if (strVisit.equals("_error_")){
+				return "_error_";
+			}
 		}
 		return "";
 	}
@@ -436,6 +465,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		File existe = new File(pathBase+"\\"+nombreBD+"\\"+idTablaRef+".XML");
 		if (! existe.exists()){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+idTablaRef+">");
+			return "_error_";
+		}
+		
+		if (ctx.references().ID().size()<=1){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se hace referencia a ninguna tabla");
 			return "_error_";
 		}
 		
@@ -502,6 +536,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		String returnExp4 = visit(ctx.exp4());
 		String returnExpUni = visit(ctx.unifactor());
 		
+		if (returnExp4.equals("_error_") || returnExpUni.equals("_error_")){
+			return "_error_";
+		}
 		
 		if (evaluandoExp){
 			float fExp4 = 0.0f, fExpUni = 0.0f;
@@ -596,23 +633,48 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 
 	@Override
 	public String visitExpNotOr(SQLParser.ExpNotOrContext ctx) {
-		return super.visitExpNotOr(ctx);
+		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
+			String strVisitar = visit(ctx.getChild(visitarNum));
+			if (strVisitar.equals("_error_")){
+				return "_error_";
+			}
+		}
+		return "";
+		//return super.visitExpNotOr(ctx);
 	}
 
 	@Override
 	public String visitExpNotGl(SQLParser.ExpNotGlContext ctx) {
-		return super.visitExpNotGl(ctx);
+		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
+			String strVisitar = visit(ctx.getChild(visitarNum));
+			if (strVisitar.equals("_error_")){
+				return "_error_";
+			}
+		}
+		return "";
+		//return super.visitExpNotGl(ctx);
 	}
 
 	@Override
 	public String visitExpNotEq(SQLParser.ExpNotEqContext ctx) {
-		return super.visitExpNotEq(ctx);
+		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
+			String strVisitar = visit(ctx.getChild(visitarNum));
+			if (strVisitar.equals("_error_")){
+				return "_error_";
+			}
+		}
+		return "";
+		//return super.visitExpNotEq(ctx);
 	}
 
 	@Override
 	public String visitExpOr(SQLParser.ExpOrContext ctx) {
 		String returnExp2 = visit(ctx.exp2());
 		String returnExp3 = visit(ctx.exp3());
+		if (returnExp2.equals("_error_") || returnExp3.equals("_error_")){
+			return "_error_";
+		}
+		
 		if(evaluandoExp){
 			if (returnExp2.equals("true") || returnExp3.equals("true")){
 				return "true";
@@ -635,7 +697,14 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 
 	@Override
 	public String visitExpNotAnd(SQLParser.ExpNotAndContext ctx) {
-		return super.visitExpNotAnd(ctx);
+		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
+			String strVisitar = visit(ctx.getChild(visitarNum));
+			if (strVisitar.equals("_error_")){
+				return "_error_";
+			}
+		}
+		return "";
+		//return super.visitExpNotAnd(ctx);
 	}
 
 	@Override
@@ -700,7 +769,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitExpAnd(SQLParser.ExpAndContext ctx) {
 		String returnExpr = visit(ctx.expr());
 		String returnExp2 = visit(ctx.exp2());
-//		System.out.println("1. "+returnExpr+" - "+returnExp2);
+		
+		if (returnExpr.equals("_error_") || returnExp2.equals("_error_")){
+			return "_error_";
+		}
+		
 		if(evaluandoExp){
 			if (returnExpr.equals("true") && returnExp2.equals("true")){
 				return "true";
@@ -714,9 +787,6 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				return "";
 			}
 			else{
-				System.out.println(ctx.expr().getText());
-				System.out.println(ctx.exp2().getText());
-				System.out.println("2. "+returnExpr+" - "+returnExp2);
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
 				return "_error_";
 			}
@@ -726,7 +796,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 
 	@Override
 	public String visitExpNotFactor(SQLParser.ExpNotFactorContext ctx) {
-		String returnTypeFactor = visit(ctx.factor());
+		String returnTypeFactor = visit(ctx.factor());		
+		
 		//TODO Esto creo que esta malo
 		if (evaluandoExp){
 			return "-"+returnTypeFactor;
@@ -774,7 +845,14 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 
 	@Override
 	public String visitExpFactor(SQLParser.ExpFactorContext ctx) {
-		return super.visitExpFactor(ctx);
+		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
+			String strVisitar = visit(ctx.getChild(visitarNum));
+			if (strVisitar.equals("_error_")){
+				return "_error_";
+			}
+		}
+		return "";
+//		return super.visitExpFactor(ctx);
 	}
 
 	@Override
@@ -784,14 +862,28 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 
 	@Override
 	public String visitExpLiteral(SQLParser.ExpLiteralContext ctx) {
-		return super.visitExpLiteral(ctx);
+		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
+			String strVisitar = visit(ctx.getChild(visitarNum));
+			if (strVisitar.equals("_error_")){
+				return "_error_";
+			}
+		}
+		return "";
+//		return super.visitExpLiteral(ctx);
 	}
 	
 	
 	//hasta aqui exp//
 	
 	public String visitReferences(SQLParser.ReferencesContext ctx){
-		return super.visitReferences(ctx);
+		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
+			String strVisitar = visit(ctx.getChild(visitarNum));
+			if (strVisitar.equals("_error_")){
+				return "_error_";
+			}
+		}
+		return "";
+//		return super.visitReferences(ctx);
 	}
 	
 
@@ -887,7 +979,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
 			// Visitamos table action
 			for (int i=0; i<ctx.tableAction().size(); i++){
-				visit(ctx.tableAction(i));
+				if (visit(ctx.tableAction(i)).equals("_error_")){
+					return "_error_";
+				}
 			}
 			return "";
 		}			
@@ -911,7 +1005,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		tipoDato.add(tipoActual.toLowerCase());
 		archivoXML.agregarListaColumnas(nombreTabla, informacion, tipoDato);
 		// Visitamos las constraints
-		visit(ctx.constraints());
+		if (visit(ctx.constraints()).equals("_error_")){
+			return "_error_";
+		}
 		return "";
 	}
 	
@@ -922,7 +1018,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		datos = tablaCols;
 		// Listamos las constraints
 		listaConstraints = archivoXML.listarConstraintsTabla(nombreTabla);
-		visit(ctx.constraint());
+		if (visit(ctx.constraint()).equals("_error_")){
+			return "_error_";
+		}
 		return "";
 	}
 	
@@ -955,29 +1053,47 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 
 	public String visitShowColums(SQLParser.ShowColumsContext ctx){
-		String pathCarpeta = pathBase+"\\"+nombreBD;
-		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
-		nombreTabla = ctx.ID().getText();
-		columnas.clear();
-		data.clear();
-		columnas.add("nombreColumna");
-		columnas.add("tipoDato");
-		columnas.add("primaryKey");
-		columnas.add("foreignKey");
-		columnas.add("referenciaFK");
-		columnas.add("check");
-		columnas.add("expresion");
-		data = getTableMetadata();
-		return "";
+		if(nombreBD.equals("")){
+			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
+			return "_error_";
+		}else{
+			String pathCarpeta = pathBase+"\\"+nombreBD;
+			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
+			nombreTabla = ctx.ID().getText();
+			// Revisamos que exista la tabla
+			File f = new File(pathCarpeta+"\\"+nombreTabla+".XML");
+			if (! f.exists()){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+nombreTabla+">");
+				return "_error_";
+			}
+			columnas.clear();
+			data.clear();
+			columnas.add("nombreColumna");
+			columnas.add("tipoDato");
+			columnas.add("primaryKey");
+			columnas.add("foreignKey");
+			columnas.add("referenciaFK");
+			columnas.add("check");
+			columnas.add("expresion");
+			data = getTableMetadata();
+			return "";
+		}
 	}
 	
 	public String visitData(SQLParser.DataContext ctx){		
 		// Se revisa que ya se haya elegido una base de datos a utilizar
-		if(nombreBD.equals("")){
+		if(ctx.query()== null && nombreBD.equals("")){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
 			return "_error_";
 		}else{			
-			return super.visitData(ctx);
+			for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
+				String strVisitar = visit(ctx.getChild(visitarNum));
+				if (strVisitar.equals("_error_")){
+					return "_error_";
+				}
+			}
+			return "";
+//			return super.visitData(ctx);
 		}
 	}
 	
@@ -1034,8 +1150,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		datosTipos =new ArrayList<String>();
 		insertandoDatos = true;
 		for (int x=0; x<ctx.formatValue().size(); x++){
-			// Aqui se llena datos y datosTipos
-			visit(ctx.formatValue(x));
+			// Aqui se llena datos y datosTipos			
+			if (visit(ctx.formatValue(x)).equals("_error_")){
+				return "_error_";
+			}
 		}
 		insertandoDatos = false;			
 		
@@ -1228,7 +1346,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				return "_error_";
 			}
 			columnasAsignacion.add(ctx.asignacion().get(i).ID().getText());
-			visit(ctx.asignacion().get(i).literal().formatValue());
+			String superVisit = visit(ctx.asignacion().get(i).literal().formatValue());
+			if (superVisit.equals("_error_")){
+				return "_error_";
+			}
 		}
 		
 		insertandoDatos = false;			
