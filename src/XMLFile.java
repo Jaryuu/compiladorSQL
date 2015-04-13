@@ -986,7 +986,6 @@ public class XMLFile {
 	        		   
 		           }
 	        	   if(!esLaTupla.contains(false)){
-	        		   System.out.println(tupla);
 	        		   nodo.getParentNode().removeChild(nodo);
 	        	   }  
 				}

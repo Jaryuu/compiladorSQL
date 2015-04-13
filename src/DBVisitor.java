@@ -1579,20 +1579,24 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				ArrayList<ArrayList<String>> fksTabla = archivoXML.listarConstraintsEspecificosTabla(tablas.get(i),"foreignKey");
 				for (int j=0;j<fksTabla.get(0).size();j++){
 					ArrayList<String> tuplaRef = new ArrayList<String>();
-					tuplaRef.add(tablas.get(i));
+					ArrayList<String> colTabla = new ArrayList<String>();
+					ArrayList<String> tablaRef = new ArrayList<String>();
+					tablaRef.add(tablas.get(i));
 					for (int k=0;k<fksTabla.get((2*j)+2).size();k++){
 						String[] ref = fksTabla.get((2*j)+2).get(0).split("\\.");
 						if(ref[0].equals(nombreTabla)){
 							tuplaRef.add(ref[1]);
+							colTabla.add(fksTabla.get((2*j)+1).get(0));
 						}
 					}
-					if(tuplaRef.size()>1){
+					if(tuplaRef.size()>0){
+						colsRef.add(tablaRef);
+						colsRef.add(colTabla);
 						colsRef.add(tuplaRef);
 					}
 				}
 			}
 		}
-		
 		
 		//lo alegre
 		int filasAfectadas = 0;
@@ -1607,24 +1611,44 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			esTodo = true;
 		}
 		ArrayList<ArrayList<String>> queryTabla = archivoXMLTabla.queryColumns(columnasTabla);
-		
+		ArrayList<ArrayList<String>> modificados = new ArrayList<ArrayList<String>>(); 
 		if (esTodo){
-			for(int j=0;j<queryTabla.size();j++){
-				archivoXMLTabla.deleteTupla(columnasTabla, queryTabla.get(j));
-				filasAfectadas++;
-				//delete
-			}
-			
+				modificados=queryTabla;
 		}
 		else{
 			visit(exp);
 			for(int j=0;j<queryTabla.size();j++){
 				if (checkTupla(queryTabla.get(j), columnasTabla, exp)){
-					archivoXMLTabla.deleteTupla(columnasTabla, queryTabla.get(j));
-					filasAfectadas++;
+					modificados.add(queryTabla.get(j));
 					//delete
 				}
 			}
+		}
+		
+		
+		//Revisar fks de los consultados
+		XMLFile archivoXMLRef = new XMLFile();
+		for(int i=0;i<modificados.size();i++){
+			for (int j=0;j<(colsRef.size()/3);j++){
+				//Los nombres de las tablas estan en el multiplo de 3
+				if (!archivoXMLRef.getNombre().equals(colsRef.get(j*3).get(0))){
+					archivoXMLRef = new XMLFile(colsRef.get(j*3).get(0), pathCarpeta);
+				}
+				ArrayList<ArrayList<String>> queryRef = archivoXMLRef.queryColumns(colsRef.get(j*3+1));
+				for(int k=0;k<queryRef.size();k++){			
+					if(queryRef.get(k).contains(modificados.get(i).get(columnasTabla.indexOf(colsRef.get(j*3+2).get(0))))){
+						agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+colsRef.get(j*3+2).get(0)+"="+modificados.get(i).get(columnasTabla.indexOf(colsRef.get(j*3+2).get(0)))+"> es referenciado en la tabla "+colsRef.get(j*3)+" y no se puede borrar");
+						return "_error_";
+					}
+				}
+				
+			}
+			
+		}
+		
+		for(int i=0;i<modificados.size();i++){
+			archivoXMLTabla.deleteTupla(columnasTabla, modificados.get(i));
+			filasAfectadas++;
 		}
 		
 		contadorDeletes = filasAfectadas; 
