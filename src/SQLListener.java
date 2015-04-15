@@ -242,6 +242,16 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitQuery(@NotNull SQLParser.QueryContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SQLParser#orderby}.
+	 * @param ctx the parse tree
+	 */
+	void enterOrderby(@NotNull SQLParser.OrderbyContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#orderby}.
+	 * @param ctx the parse tree
+	 */
+	void exitOrderby(@NotNull SQLParser.OrderbyContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code dropConstraintTB}
 	 * labeled alternative in {@link SQLParser#tableAction}.
 	 * @param ctx the parse tree

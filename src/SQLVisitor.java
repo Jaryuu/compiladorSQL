@@ -149,6 +149,12 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitQuery(@NotNull SQLParser.QueryContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SQLParser#orderby}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOrderby(@NotNull SQLParser.OrderbyContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code dropConstraintTB}
 	 * labeled alternative in {@link SQLParser#tableAction}.
 	 * @param ctx the parse tree

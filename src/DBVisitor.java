@@ -1970,8 +1970,16 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	
 	public String visitQuery(SQLParser.QueryContext ctx){
 		listaTablas = new ArrayList<String>();
+		archivoXML = new XMLFile("Metadata."+nombreBD, pathBase+"\\"+nombreBD+"\\");
+		ArrayList<String> tablasDB = archivoXML.showTables();
 		for(int i=0;i<ctx.ID().size();i++){
-			listaTablas.add(ctx.ID(i).getText());
+			if (tablasDB.contains(ctx.ID(i).getText())){
+				listaTablas.add(ctx.ID(i).getText());
+			}
+			else{
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+ctx.ID(i).getText()+"> no es una tabla de la base de datos.");
+				return "_error_";
+			}
 		}
 		ArrayList<ArrayList<ArrayList<String>>> crossProd = crossProduct(listaTablas);
 		
@@ -2043,7 +2051,19 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		//Where
 		ArrayList<ArrayList<String>> modificados = new ArrayList<ArrayList<String>>();
 		if (expTodo){
-			modificados = query;
+			for(int j=0;j<query.size();j++){
+				ArrayList<String> tuplaFiltro = new ArrayList<String>();
+				for(int k=0;k<colsSelect.size();k++){
+					if(colsQuery.contains(colsSelect.get(k))){
+						tuplaFiltro.add(query.get(j).get(colsQuery.indexOf(colsSelect.get(k))));
+					}
+					else{
+						tuplaFiltro.add(query.get(j).get(colsPunto.indexOf(colsSelect.get(k))));
+					}
+				}
+				
+				modificados.add(tuplaFiltro);
+			}
 		}
 		else{
 			isSelect=true;
@@ -2054,7 +2074,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 					ArrayList<String> tuplaFiltro = new ArrayList<String>();
 					for(int k=0;k<colsSelect.size();k++){
 						if(colsQuery.contains(colsSelect.get(k))){
-							tuplaFiltro.add(query.get(j).get(colsQuery.indexOf(colsSelect.get(k))));
+							tuplaFiltro.add(query.get(j).get(colsQuery.indexOf(colsSelect.get(k))));							
 						}
 						else{
 							tuplaFiltro.add(query.get(j).get(colsPunto.indexOf(colsSelect.get(k))));
@@ -2066,11 +2086,37 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 		}
 			
+		//Order By
+		ArrayList<Integer> listaOrderBy = new ArrayList<Integer>();
+		ArrayList<String> sortType = new ArrayList<String>();
+		for(int i=0; i<ctx.orderby().size();i++){
+			if (colsSelect.contains(ctx.orderby(i).expresion().getText())){
+				listaOrderBy.add(colsSelect.indexOf(ctx.orderby(i).expresion().getText()));
+				if (ctx.orderby(i).K_DESC()==null){
+					sortType.add("ASC");
+				}
+				else{
+					sortType.add("DESC");
+				}
+			}
+			else{
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine()," <"+ctx.orderby(i).expresion().getText()+"> no es una columna de la consulta.");
+				return "_error_";
+			}
+		}
+		if (!listaOrderBy.isEmpty()){
+			if (bVerbose){
+				System.out.println("Se verifica orden en la consulta");
+			}
+		}
+		Collections.sort(modificados,new NuevoComparator(listaOrderBy,sortType));
 		data = modificados;
+		
 		columnas = colsSelect;
 		
 		return "";
 	}
+	
 	
 	public String visitDelete(SQLParser.DeleteContext ctx){
 		nombreTabla = ctx.ID().getText();

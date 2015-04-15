@@ -268,6 +268,18 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterOrderby(@NotNull SQLParser.OrderbyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOrderby(@NotNull SQLParser.OrderbyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterDropConstraintTB(@NotNull SQLParser.DropConstraintTBContext ctx) { }
 	/**
 	 * {@inheritDoc}
