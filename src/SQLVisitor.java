@@ -221,6 +221,12 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDecimal(@NotNull SQLParser.DecimalContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SQLParser#nullType}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNullType(@NotNull SQLParser.NullTypeContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code expID}
 	 * labeled alternative in {@link SQLParser#factor}.
 	 * @param ctx the parse tree

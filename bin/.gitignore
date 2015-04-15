@@ -88,3 +88,5 @@
 /SQLParser$UnifactorContext.class
 /SQLParser$UseDBContext.class
 /SQLParser.class
+/SQLParser$TipoNullContext.class
+/SQLParser$NullTypeContext.class

@@ -364,6 +364,16 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitDecimal(@NotNull SQLParser.DecimalContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SQLParser#nullType}.
+	 * @param ctx the parse tree
+	 */
+	void enterNullType(@NotNull SQLParser.NullTypeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#nullType}.
+	 * @param ctx the parse tree
+	 */
+	void exitNullType(@NotNull SQLParser.NullTypeContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code expID}
 	 * labeled alternative in {@link SQLParser#factor}.
 	 * @param ctx the parse tree

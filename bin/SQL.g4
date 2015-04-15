@@ -160,6 +160,10 @@ K_NOT
 :	('N'|'n') ('O'|'o') ('T'|'t')
 ;
 
+K_NULL
+:	('N'|'n') ('U'|'u') ('L'|'l') ('L'|'l')
+;
+
 K_DELETE
 :	('D'|'d') ('E'|'e') ('L'|'l') ('E'|'e') ('T'|'t') ('E'|'e')
 ;
@@ -332,6 +336,11 @@ formatValue
 |	decimal
 |	fecha
 |	character
+|	nullType
+;
+
+nullType
+:	K_NULL
 ;
 
 entero

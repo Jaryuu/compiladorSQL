@@ -1545,6 +1545,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		insertandoDatos = false;			
 		
+		
+		
 		// Vebose
 		if (bVerbose){
 			System.out.println("Se revisa el tipo de la columna se va a agregar <>");
@@ -1576,7 +1578,8 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				// Conversion automatica de int a float
 				datos.set(x, intAFloat(datos.get(x)));
 				datosTipos.set(x, "float");
-			}else if(! tipoAgregar.equals(tipoReal)){
+			}
+			else if(! tipoAgregar.equals(tipoReal) && !tipoAgregar.equalsIgnoreCase("null")){
 				// Si son diferentes los tipos y no son char(NUM) hay error
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La columna <"+columnas.get(x)+"> no es de tipo: "+tipoAgregar);
 				return "_error_";
@@ -2310,6 +2313,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		
 	}
+	
+	public String visitNullType(SQLParser.NullTypeContext ctx){
+		return "null";
+	} 
 	
 	public String visitFecha(SQLParser.FechaContext ctx){
 		// Si se estan insertando datos se coloca en datosTipos el tipo del dato
