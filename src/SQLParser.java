@@ -1166,10 +1166,10 @@ public class SQLParser extends Parser {
 		public ReferencesContext references() {
 			return getRuleContext(ReferencesContext.class,0);
 		}
-		public TerminalNode K_KEY() { return getToken(SQLParser.K_KEY, 0); }
 		public TerminalNode ID(int i) {
 			return getToken(SQLParser.ID, i);
 		}
+		public TerminalNode K_KEY() { return getToken(SQLParser.K_KEY, 0); }
 		public CFKContext(ConstraintContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
@@ -1187,10 +1187,10 @@ public class SQLParser extends Parser {
 	}
 	public static class CPKContext extends ConstraintContext {
 		public List<TerminalNode> ID() { return getTokens(SQLParser.ID); }
-		public TerminalNode K_KEY() { return getToken(SQLParser.K_KEY, 0); }
 		public TerminalNode ID(int i) {
 			return getToken(SQLParser.ID, i);
 		}
+		public TerminalNode K_KEY() { return getToken(SQLParser.K_KEY, 0); }
 		public TerminalNode K_PRIMARY() { return getToken(SQLParser.K_PRIMARY, 0); }
 		public CPKContext(ConstraintContext ctx) { copyFrom(ctx); }
 		@Override
@@ -1214,14 +1214,14 @@ public class SQLParser extends Parser {
 		int _la;
 		try {
 			setState(253);
-			switch (_input.LA(1)) {
-			case K_PRIMARY:
+			switch ( getInterpreter().adaptivePredict(_input,18,_ctx) ) {
+			case 1:
 				_localctx = new CPKContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(213); match(K_PRIMARY);
-				setState(214); match(K_KEY);
-				setState(215); match(ID);
+				setState(213); match(ID);
+				setState(214); match(K_PRIMARY);
+				setState(215); match(K_KEY);
 				setState(216); match(T__5);
 				setState(227);
 				_errHandler.sync(this);
@@ -1253,13 +1253,13 @@ public class SQLParser extends Parser {
 				setState(230); match(T__4);
 				}
 				break;
-			case K_FOREIGN:
+			case 2:
 				_localctx = new CFKContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(231); match(K_FOREIGN);
-				setState(232); match(K_KEY);
-				setState(233); match(ID);
+				setState(231); match(ID);
+				setState(232); match(K_FOREIGN);
+				setState(233); match(K_KEY);
 				setState(234); match(T__5);
 				setState(245);
 				_errHandler.sync(this);
@@ -1292,7 +1292,7 @@ public class SQLParser extends Parser {
 				setState(249); references();
 				}
 				break;
-			case ID:
+			case 3:
 				_localctx = new CCheckContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
@@ -1303,8 +1303,6 @@ public class SQLParser extends Parser {
 				}
 				}
 				break;
-			default:
-				throw new NoViableAltException(this);
 			}
 		}
 		catch (RecognitionException re) {
@@ -3579,13 +3577,13 @@ public class SQLParser extends Parser {
 		"\u00d6\7\"\2\2\u00cf\u00d6\7%\2\2\u00d0\u00d6\7#\2\2\u00d1\u00d2\7$\2"+
 		"\2\u00d2\u00d3\7\n\2\2\u00d3\u00d4\7<\2\2\u00d4\u00d6\7\13\2\2\u00d5\u00ce"+
 		"\3\2\2\2\u00d5\u00cf\3\2\2\2\u00d5\u00d0\3\2\2\2\u00d5\u00d1\3\2\2\2\u00d6"+
-		"\21\3\2\2\2\u00d7\u00d8\7&\2\2\u00d8\u00d9\7*\2\2\u00d9\u00da\7;\2\2\u00da"+
+		"\21\3\2\2\2\u00d7\u00d8\7;\2\2\u00d8\u00d9\7&\2\2\u00d9\u00da\7*\2\2\u00da"+
 		"\u00e5\7\n\2\2\u00db\u00e0\7;\2\2\u00dc\u00dd\7\r\2\2\u00dd\u00df\7;\2"+
 		"\2\u00de\u00dc\3\2\2\2\u00df\u00e2\3\2\2\2\u00e0\u00de\3\2\2\2\u00e0\u00e1"+
 		"\3\2\2\2\u00e1\u00e4\3\2\2\2\u00e2\u00e0\3\2\2\2\u00e3\u00db\3\2\2\2\u00e4"+
 		"\u00e7\3\2\2\2\u00e5\u00e3\3\2\2\2\u00e5\u00e6\3\2\2\2\u00e6\u00e8\3\2"+
-		"\2\2\u00e7\u00e5\3\2\2\2\u00e8\u0100\7\13\2\2\u00e9\u00ea\7)\2\2\u00ea"+
-		"\u00eb\7*\2\2\u00eb\u00ec\7;\2\2\u00ec\u00f7\7\n\2\2\u00ed\u00f2\7;\2"+
+		"\2\2\u00e7\u00e5\3\2\2\2\u00e8\u0100\7\13\2\2\u00e9\u00ea\7;\2\2\u00ea"+
+		"\u00eb\7)\2\2\u00eb\u00ec\7*\2\2\u00ec\u00f7\7\n\2\2\u00ed\u00f2\7;\2"+
 		"\2\u00ee\u00ef\7\r\2\2\u00ef\u00f1\7;\2\2\u00f0\u00ee\3\2\2\2\u00f1\u00f4"+
 		"\3\2\2\2\u00f2\u00f0\3\2\2\2\u00f2\u00f3\3\2\2\2\u00f3\u00f6\3\2\2\2\u00f4"+
 		"\u00f2\3\2\2\2\u00f5\u00ed\3\2\2\2\u00f6\u00f9\3\2\2\2\u00f7\u00f5\3\2"+

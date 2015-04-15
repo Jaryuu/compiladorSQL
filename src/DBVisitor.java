@@ -735,7 +735,12 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		// Esto se va a guardar check-nombreCheck-stringCheck TODO
 		if (visit(ctx.exp()).equals("_error_")){			
 			return "__error__";
-		}		
+		}
+		String pathCarpeta = pathBase+"\\"+nombreBD;
+		if (!archivoXMLTabla.getNombre().equals(nombreTabla)){
+			archivoXMLTabla = new XMLFile(nombreTabla, pathCarpeta);
+		}
+		
 		
 		int a = ctx.start.getStartIndex();
 	    int b = ctx.stop.getStopIndex();
@@ -752,6 +757,21 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}else{
 			listaConstraints.add(nombre);
 		}
+		
+		ArrayList<String> colsTabla = archivoXML.listarColumnas(nombreTabla);
+		ArrayList<ArrayList<String>> query = archivoXMLTabla.queryColumns(colsTabla);
+		for(int i=0;i<query.size();i++){
+//			System.out.println(query.get(i));
+			if(!checkTupla(query.get(i),colsTabla,ctx.exp())){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "La tupla <"+query.get(i).toString()+"> no cumple con la expresion del check<"+ctx.exp().getText()+">");
+				return "_error_";
+			}
+		}
+		
+		
+		
+		
+		
 		// Verbose
 		if (bVerbose){			
 			System.out.println("Se guarda el string del check en la metadata");	
@@ -777,11 +797,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitExpGL(SQLParser.ExpGLContext ctx) {
 		String returnExp4 = visit(ctx.exp4());
 		String returnExpUni = visit(ctx.unifactor());
-		
 		if (returnExp4.equals("_error_") || returnExpUni.equals("_error_")){
 			return "_error_";
 		}
-		
 		if (evaluandoExp){
 			float fExp4 = 0.0f, fExpUni = 0.0f;
 			try{
@@ -870,42 +888,44 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 		}
 		
-		
 	}
 
 	@Override
 	public String visitExpNotOr(SQLParser.ExpNotOrContext ctx) {
+		String strVisitar = "";
 		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
-			String strVisitar = visit(ctx.getChild(visitarNum));
+			strVisitar = visit(ctx.getChild(visitarNum));
 			if (strVisitar.equals("_error_")){
 				return "_error_";
 			}
 		}
-		return "";
+		return strVisitar;
 		//return super.visitExpNotOr(ctx);
 	}
 
 	@Override
 	public String visitExpNotGl(SQLParser.ExpNotGlContext ctx) {
+		String strVisitar = "";
 		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
-			String strVisitar = visit(ctx.getChild(visitarNum));
+			strVisitar = visit(ctx.getChild(visitarNum));
 			if (strVisitar.equals("_error_")){
 				return "_error_";
 			}
 		}
-		return "";
+		return strVisitar;
 		//return super.visitExpNotGl(ctx);
 	}
 
 	@Override
 	public String visitExpNotEq(SQLParser.ExpNotEqContext ctx) {
+		String strVisitar = "";
 		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
-			String strVisitar = visit(ctx.getChild(visitarNum));
+			strVisitar = visit(ctx.getChild(visitarNum));
 			if (strVisitar.equals("_error_")){
 				return "_error_";
 			}
 		}
-		return "";
+		return strVisitar;
 		//return super.visitExpNotEq(ctx);
 	}
 
@@ -939,13 +959,14 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 
 	@Override
 	public String visitExpNotAnd(SQLParser.ExpNotAndContext ctx) {
+		String strVisitar = "";
 		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
-			String strVisitar = visit(ctx.getChild(visitarNum));
+			strVisitar = visit(ctx.getChild(visitarNum));
 			if (strVisitar.equals("_error_")){
 				return "_error_";
 			}
 		}
-		return "";
+		return strVisitar;
 		//return super.visitExpNotAnd(ctx);
 	}
 
@@ -1026,10 +1047,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		else{
 			if (returnExpr.equals("boolean") && returnExp2.equals("boolean")){
-				return "";
+				//idk
+				return "boolean";
 			}
 			else{
-				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion  <"+ctx.getText()+"> no coincide en tipos");
 				return "_error_";
 			}
 		}
@@ -1063,11 +1085,29 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		String returnExp4 = visit(ctx.exp4());
 		if(evaluandoExp){
 			if (ctx.relationalExpEq().getText().equals("=")){
-				//TODO cambiar al try de parseo
-				return String.valueOf(returnExp3.equals(returnExp4));
+				//parseo
+				float fExp4 = 0.0f, fExp3 = 0.0f;
+				try{
+					fExp3 = Float.parseFloat(returnExp3);
+					fExp4 = Float.parseFloat(returnExp4);
+					return String.valueOf(fExp3==fExp4);
+				}
+				catch(Exception e){
+					return String.valueOf(returnExp3.equals(returnExp4));
+				}
+				
+				
 			}
 			else{
-				return String.valueOf(!returnExp3.equals(returnExp4));
+				float fExp4 = 0.0f, fExp3 = 0.0f;
+				try{
+					fExp3 = Float.parseFloat(returnExp3);
+					fExp4 = Float.parseFloat(returnExp4);
+					return String.valueOf(fExp3!=fExp4);
+				}
+				catch(Exception e){
+					return String.valueOf(!returnExp3.equals(returnExp4));
+				}
 			}
 		}
 		
@@ -1076,7 +1116,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			if (returnExp3.equals(returnExp4) || returnExp4.equals("null") || (returnExp3.equals("int") && returnExp4.equals("float")) || (returnExp3.equals("float") && returnExp4.equals("int"))){
 				return "boolean";
 			}
-			else{	
+			else{
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Expresion <"+ctx.getText()+"> no coincide en tipos");
 				return "_error_";
 			}
@@ -1087,13 +1127,14 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 
 	@Override
 	public String visitExpFactor(SQLParser.ExpFactorContext ctx) {
+		String strVisitar = "";
 		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
-			String strVisitar = visit(ctx.getChild(visitarNum));
+			strVisitar = visit(ctx.getChild(visitarNum));
 			if (strVisitar.equals("_error_")){
 				return "_error_";
 			}
 		}
-		return "";
+		return strVisitar;
 //		return super.visitExpFactor(ctx);
 	}
 
@@ -1104,13 +1145,14 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 
 	@Override
 	public String visitExpLiteral(SQLParser.ExpLiteralContext ctx) {
+		String strVisitar = "";
 		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
-			String strVisitar = visit(ctx.getChild(visitarNum));
+			strVisitar = visit(ctx.getChild(visitarNum));
 			if (strVisitar.equals("_error_")){
 				return "_error_";
 			}
 		}
-		return "";
+		return strVisitar;
 //		return super.visitExpLiteral(ctx);
 	}
 	
@@ -2487,13 +2529,20 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		
 		
-		String chexp =  expresion.getText();
+		int a = expresion.start.getStartIndex();
+	    int b = expresion.stop.getStopIndex();
+	    Interval interval = new Interval(a,b);	
+	    String chexp = expresion.start.getInputStream().getText(interval);
+		
+//		String chexp =  expresion.getText();
 		for (int k=0;k<sortedColumns.size();k++){
 			if (chexp.contains(sortedColumns.get(k))){
 				
 				chexp = chexp.replace(sortedColumns.get(k), sortedDatos.get(k));
 			}
 		}
+		
+		
 		
 		ANTLRInputStream input = new ANTLRInputStream(chexp);
 		SQLLexer lexer = new SQLLexer(input);
@@ -2508,6 +2557,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		visitor.setEvaluandoExp(true);
 		visitor.visit(tree);
 		SQLParser.ExpContext checkContext = visitor.getContextExp();
+		
 		if (visitExp(checkContext).equals("false")){
 			evaluandoExp=false;
 			return false;

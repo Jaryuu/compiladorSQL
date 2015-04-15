@@ -550,6 +550,18 @@ public class XMLFile {
 					        	   }
 								}
 				           }
+				           
+				           NodeList listCHK = eElement.getElementsByTagName("check");
+				           for (int z=0; z<listCHK.getLength(); z++){
+				        	   org.w3c.dom.Node nodoCHK =  listCHK.item(z);
+								if (nodoCHK.getNodeType() == Node.ELEMENT_NODE) {	           
+						           Element eElementPK = (Element) nodoCHK;
+					        	   if (eElementPK.getElementsByTagName("expresion").item(0).getTextContent().contains(nombreCol)){
+						        	   //Forma rex
+					        		   return true;
+						           }
+								}
+				           }
 						}else{
 							// Foreign key pero como referencia 
 							NodeList listFK = eElement.getElementsByTagName("foreignKey");
