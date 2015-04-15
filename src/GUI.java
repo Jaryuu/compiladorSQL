@@ -3,6 +3,7 @@ import java.awt.EventQueue;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -74,6 +75,9 @@ public class GUI extends JFrame {
 	private JTextArea txtAreaError;	
 	private JScrollPane jsp3;
 	private JPanel tablePane;
+	private JCheckBox jcbVerbose;
+	
+	public static boolean bVerbose;
 	
 	
 	//
@@ -89,7 +93,7 @@ public class GUI extends JFrame {
 		this.nombreDB = nombreDB;
 	}
 	
-	public GUI() {		
+	public GUI() {				
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 628, 567);
 		contentPane = new JPanel();
@@ -164,10 +168,8 @@ public class GUI extends JFrame {
 						writer.println(textPane.getText());
 					    writer.close();
 					} catch (FileNotFoundException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (UnsupportedEncodingException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				    
@@ -181,7 +183,7 @@ public class GUI extends JFrame {
 		btnCompile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				panel_1.removeAll();
-				
+				bVerbose = jcbVerbose.isSelected();
 				//Verificar que no es la primera vez que se ejecuta
 				if(antlr4!=null){
 					nombreDB = antlr4.getNombreDB();
@@ -192,7 +194,8 @@ public class GUI extends JFrame {
 				//Settear el nombre de la DB que se está usando
 				if(nombreDB!=null){
 					antlr4.setNombreDB(nombreDB);
-				}
+				}				
+				antlr4.getVisitor().setbVerbose(bVerbose);
 				antlr4.visitTree();
 				
 				antlr4.createGUITree();
@@ -200,7 +203,7 @@ public class GUI extends JFrame {
 					txtAreaError.setText("Error:\n" + antlr4.getErrorListener().getError());
 					txtAreaError.setForeground(Color.RED);
 				}else {
-					if (! (antlr4.getError() || antlr4.isErrorST() || antlr4.isbWarning()) ) {
+					if (! (antlr4.getError() || antlr4.isErrorST() || antlr4.isbWarning()) ) {						
 						
 						updateTable(antlr4);
 						txtAreaError.setText("Console: \n"+antlr4.getVisitor().mensajesToString());
@@ -214,6 +217,12 @@ public class GUI extends JFrame {
 		});
 		panel_2.add(btnCompile);
 		
+		// Verbose Checkbox
+		panel_2.add(Box.createRigidArea(new Dimension(0,40)));
+		
+		jcbVerbose = new JCheckBox("Verbose", null, false);
+		bVerbose = false;
+		panel_2.add(jcbVerbose);
 		
 		txtAreaError = new JTextArea();	
 		txtAreaError.setText("Console:");

@@ -44,6 +44,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	//Para el select
 	private boolean isSelect=false;
 	ArrayList<String> listaTablas;
+	private boolean bVerbose = false;
 	
 	
 	public ArrayList<String> getExpIds() {
@@ -135,6 +136,14 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public void setArchivoXML(XMLFile archivoXML) {
 		this.archivoXML = archivoXML;
 	}
+	
+	public boolean isbVerbose() {
+		return bVerbose;
+	}
+
+	public void setbVerbose(boolean bVerbose) {
+		this.bVerbose = bVerbose;
+	}
 
 	public String visitTodo(SQLParser.TodoContext ctx){
 		// Se crean los atributos
@@ -150,14 +159,21 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		contadorInserts=0;
 		contadorUpdates=0;
 		contadorDeletes=0;
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa si ya existe la carpeta donde se guarda toda la informacion");
+		}
 		if (!success) {
 		    //System.out.println("Ya existe la carpeta");
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se crea la carpeta y la metadata de todas las bases de datos");
+			}
 		    archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 		}else{
 			archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 		}
 		
-//		super.visitTodo(ctx);
 		boolean error = false;
 		for (int visitarNum=0; visitarNum<ctx.getChildCount(); visitarNum++){
 			String strVisitar = visit(ctx.getChild(visitarNum));
@@ -200,8 +216,12 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		String nuevaBD = ctx.ID().getText();		
 		exitoCarpeta = crearCarpeta(pathBase+nuevaBD);
 		archivoXML = new XMLFile("Metadata."+nuevaBD, pathBase+"\\"+nuevaBD+"\\");
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que la base de datos <"+nuevaBD+"> exista");
+		}
 		// Si se crea la carpeta es que no existe la base de datos
-		if (exitoCarpeta){
+		if (exitoCarpeta){			
 			// Se agrega a la metadata
 			archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 			columnas.clear();
@@ -211,6 +231,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			datos.add(nuevaBD);
 			datos.add("0");
 			archivoXML.add("BaseDeDatos", columnas, datos);
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se crea el archivo MetadataBaseDeDatos, con nombre y cantidad tablas");
+			}
 		}else{
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Ya existe la base de datos <"+nuevaBD+">");
 			return "_error_";
@@ -221,7 +245,15 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitDropDB(SQLParser.DropDBContext ctx){
 		String borrarBD = ctx.ID().getText();
 		File folder = new File(pathBase+"\\"+borrarBD);
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa exista la carpeta de la base de datos <"+borrarBD+">");
+		}
 		if (folder.exists()){
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se borra todos los archivos de la base de datos <"+borrarBD+">");
+			}
 			deleteFolder(folder);
 			borrarBD(borrarBD);
 		}else{		
@@ -239,6 +271,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		// Se cambia el nombre en la metadata, el nombre de la carpeta y en su archivo JSON interno				
 		File f = new File(pathBase+"\\"+nombreViejo);
 		File f2 = new File(pathBase+"\\"+nuevoNombre);
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa exista base de datos <"+nombreViejo+">");
+			System.out.println("Se revisa no exista base de datos <"+nuevoNombre+">");
+		}
 		if (f2.exists()){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La base de datos <"+nuevoNombre+"> ya existe");
 			return "_error_";
@@ -246,12 +283,18 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la base de datos <"+nombreViejo+">");
 			return "_error_";
 		}else{
-			// Se cambia el nombre en la metadata			
-			archivoXML = new XMLFile("metadataBaseDeDatos", pathBase);
+			// Se cambia el nombre en la metadata					
+			archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 			cambiarNombreBD(nuevoNombre,nombreViejo);
-			// cambiamos el nombre de la carpeta			
+			// cambiamos el nombre de la carpeta				
 			f.renameTo(new File(pathBase+"\\"+nuevoNombre));
-			// Cambiamos el JSON interno
+			// Cambiamos el XML interno
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se cambia el nombre de la base de datos <"+nombreViejo+">");
+				System.out.println("Se cambia el nombre del archivo a <"+nuevoNombre+">");
+				System.out.println("Se cambia el nombre del archivo de la metadata");
+			}
 			archivoXML = new XMLFile("Metadata."+nombreViejo, pathBase+"\\"+nuevoNombre+"\\");
 			archivoXML.cambiarNombre("Metadata."+nuevoNombre);
 		}
@@ -269,6 +312,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		columnas.clear();
 		columnas.add("Database Name");		
 		data.clear();
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se cargan los datos de las bases de datos>");
+		}
 		for(int i=0;i<databases.size();i++){
 			ArrayList<String> tupla = new ArrayList<String>();
 			tupla.add(databases.get(i));
@@ -282,6 +329,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitUseDB(SQLParser.UseDBContext ctx) {
 		nombreBD = ctx.ID().getText();
 		File folder = new File(pathBase+"\\"+nombreBD);
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que exista la base de datos <"+nombreBD+">");
+		}
 		if (!folder.exists()){			
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la base de datos <"+nombreBD+">");
 			nombreBD = "";
@@ -294,6 +345,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		data.clear();
 		columnas.clear();
 		datos.clear();
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que se haya elegido base de datos");
+		}
 		if(nombreBD.equals("")){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
 			return "_error_";
@@ -302,6 +357,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			showNombre = nombreBD+": Tables";
 			columnas.add("NombreTabla");
 			columnas.add("CantRegistros");
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se cargan los datos de las tablas de la base de datos <"+nombreBD+">");
+			}
 			archivoXML = new XMLFile("Metadata."+nombreBD, pathBase+"\\"+nombreBD+"\\");
 			NodeList list = archivoXML.getRootElement().getElementsByTagName("tabla");
 			org.w3c.dom.Node nodo;
@@ -331,6 +390,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		data.clear();
 		columnas.clear();
 		datos.clear();
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que ya se haya elegido base de datos");
+		}
 		if(nombreBD.equals("")){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
 			return "_error_";
@@ -339,10 +402,18 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			nombreTabla = ctx.ID(0).getText();
 			String pathCarpeta = pathBase+"\\"+nombreBD;
 			// Revisamos si ya existe la tabla, revisando si existe el XML de la tabla
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se revisa si exista la tabla <"+nombreTabla+">");
+			}
 			File arch = new File(pathCarpeta+"\\"+nombreTabla+".XML");
 			if (arch.exists()){
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La tabla <"+nombreTabla+"> ya existe en <"+nombreBD+">");
 				return "_error_";
+			}
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se modifica la metadata principal, agregando 1 a la cantidad de tablas");
 			}
 			// Modificamos la metadata principal, agregando uno a la cantidad de tablas
 			archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
@@ -359,7 +430,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				}
 			}
 			archivoXML.createFile();
-			
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se modifica la metadata de la base de datos <"+nombreBD+">, agregando la tabla <"+nombreTabla+">");
+			}
 			// Modificamos la metadata dentro de esta base de datos
 			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
 			// Primero agregamos el nombre y su cantidad de registros que empieza en 0
@@ -368,7 +442,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			datos.add(nombreTabla);
 			datos.add("0");
 			archivoXML.add("tabla", columnas, datos);		
-			
+						
 			// Ahora agregamos columnas y sus tipos a la metadata de la tabla
 			// Listamos los nombres y los tipos de las columnas, a partir de id1 revisamos todos
 			ArrayList<String> nombres = new ArrayList();
@@ -381,6 +455,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				tipoDato.add(tipoActual.toLowerCase());
 			}		
 			datos.clear();
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se agregan las columnas y los tipos de las columnas a la metadata");
+			}
 			// Para poder tener los nombres en una lista visible para todos los metodos
 			datos = nombres;			
 			archivoXML.agregarListaColumnas(nombreTabla, nombres, tipoDato);
@@ -394,6 +472,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 			
 			// Creamos el archivo XML para esta tabla
+			if (bVerbose){
+				System.out.println("Se crea el archivo para la tabla");
+			}
 			archivoXML = new XMLFile(nombreTabla, pathCarpeta);			
 		}
 		return "";
@@ -419,11 +500,17 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitCPK(SQLParser.CPKContext ctx){
 		ArrayList<String> ids = new ArrayList();
 		String nombreC = ctx.ID(0).getText();
+		if (bVerbose){
+			System.out.println("Se revisa si ya existe la constraint <"+nombreC+">");
+		}
 		if (listaConstraints.contains(nombreC)){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Ya existe la constraint <"+nombreC+">");
 			return "_error_";
 		}
 		for (int y=1; y<ctx.ID().size();y++){
+			if (bVerbose){
+				System.out.println("Se revisa que ya exista la columna <"+ctx.ID(y).getText()+">");
+			}
 			// Revisamos que existan todos los ids ya en la tabla, a traves de datos
 			if (! datos.contains(ctx.ID(y).getText())){
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La tabla <"+nombreTabla+"> no tiene la columna <"+ctx.ID(y).getText()+">");
@@ -431,16 +518,21 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 			ids.add(ctx.ID(y).getText());
 		}
-		listaConstraints.add(nombreC);
+		listaConstraints.add(nombreC);		
 		if (archivoXML.countRegistros(nombreTabla)>0){
 			// Revisamos los datos actuales de la tabla para que la pk no sea conflictiva
-			// Revisamos que no sea null
+			// Revisamos que no sea null			
 			archivoXMLTabla = new XMLFile(nombreTabla, pathBase+"\\"+nombreBD);
 			ArrayList<String> idColsPK = ids;		
 			ArrayList<ArrayList<String>> tmpQuery = archivoXMLTabla.queryColumns(idColsPK);
-						
+			// Verbose
+			if (bVerbose){
+				System.out.println("Revisamos la data ya ingresada");
+				System.out.println("Revisamos que no haya datos null");
+				System.out.println("Revisamos que no se repita");
+			}			
 			
-			for (int x=0; x<tmpQuery.size(); x++){
+			for (int x=0; x<tmpQuery.size(); x++){				
 				if (tmpQuery.get(x).contains("null")){
 					agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Las columnas <"+idColsPK.toString()+"> no deben ser null");
 					return "_error_";
@@ -460,6 +552,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 		}
 		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se agrega la primary key <"+nombreC+">");
+		}
 		// Los agregamos al constraints
 		archivoXML.agregarConstraint(nombreTabla, "primaryKey", nombreC, ids);
 		return "";
@@ -469,12 +565,20 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	// En nombre tabla va el nombre de la tabla
 	public String visitCFK(SQLParser.CFKContext ctx){
 		// Se revisa si se tiene la mista cantidad de ids referencias, ids
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que haya la misma cantidad de ids de la tabla que de ids de las referencias");
+		}
 		if (ctx.ID().size() != ctx.references().ID().size()){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se tiene la misma cantidad de ids de las columnas de la tabla y de las referencias");
 			return "_error_";
 		}
 		ArrayList<String> colIds = new ArrayList();
 		String nombreC = ctx.ID(0).getText();
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que no exista la constraint <"+nombreC+">");
+		}
 		// Revisamos que no exista una constraint con el mismo nombre
 		if (listaConstraints.contains(nombreC)){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Ya existe la constraint <"+nombreC+">");
@@ -483,6 +587,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		
 		for (int y=1; y<ctx.ID().size();y++){
 			// Revisamos que existan las columnas
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se revisa que exista la columna <"+ctx.ID(y).getText()+"> en la tabla <"+nombreTabla+">");
+			}
 			if (! datos.contains(ctx.ID(y).getText())){
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La tabla <"+nombreTabla+"> no tiene la columna <"+ctx.ID(y).getText()+">");
 				return "_error_";
@@ -491,6 +599,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		ArrayList<String> referencias = new ArrayList<String>();
 		String idTablaRef = ctx.references().ID(0).getText();
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que exista la tabla <"+idTablaRef+"> en la base de datos en uso");
+		}
 		// Revisamos que exista la tabla en esta base de datos
 		File existe = new File(pathBase+"\\"+nombreBD+"\\"+idTablaRef+".XML");
 		if (! existe.exists()){
@@ -505,12 +617,20 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		
 		for (int y=1; y<ctx.references().ID().size();y++){
 			String idAct = ctx.references().ID(y).getText();
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se revisa que exista la columna <"+idAct+"> en la tabla <"+idTablaRef+">");
+			}
 			if (! archivoXML.existeCol(idTablaRef, idAct)){
 				// Que exista la columna
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la columna <"+idAct+"> en tabla <"+idTablaRef+">");
 				return "_error_";
 			}
 			else{
+				// Vebose
+				if (bVerbose){
+					System.out.println("Revisa que el tipo de dato sea el mismo entre <"+idTablaRef+"."+idAct+","+nombreTabla+"."+colIds.get(y-1)+">");
+				}
 				if(!archivoXML.tipoCol(idTablaRef,idAct).equals(archivoXML.tipoCol(nombreTabla,colIds.get(y-1)))){
 					if (archivoXML.tipoCol(idTablaRef,idAct).startsWith("char")){
 						mensajes.add("la columna <"+idAct+"> en tabla <"+idTablaRef+"> no tiene el mismo tamaño de char que la columna <"+colIds.get(y-1)+">");
@@ -524,10 +644,17 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			referencias.add(idTablaRef+"."+idAct);
 		}
 		listaConstraints.add(nombreC);
+			
 		// Revisamos que no sea conflictiva la constraint
 		// Revisamos los datos de la tabla actual
-		for (int w=0; w<colIds.size(); w++){
-			if (archivoXML.countRegistros(nombreTabla)>0){
+		if (archivoXML.countRegistros(nombreTabla)>0){
+			// Verbose
+			if (bVerbose){
+				System.out.println("Revisamos la data ya ingresada en la tabla <"+nombreTabla+">");
+				System.out.println("Revisamos que no haya datos null");
+				System.out.println("Revisamos que no se repita");
+			}
+			for (int w=0; w<colIds.size(); w++){			
 				// Revisamos los datos actuales de la tabla para que la pk no sea conflictiva
 				// Revisamos que no sea null
 				archivoXMLTabla = new XMLFile(nombreTabla, pathBase+"\\"+nombreBD);
@@ -554,6 +681,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				}
 			}
 		}
+		String tempNombreTabla = nombreTabla;		
 		// Revisamos las referencias		
 		for (int w=0; w<referencias.size(); w++){
 			String refIgual = referencias.get(w);
@@ -563,6 +691,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			if (archivoXML.countRegistros(nombreTabla)>0){
 				// Revisamos los datos actuales de la tabla para que la pk no sea conflictiva
 				// Revisamos que no sea null
+				// Verbose
+				if (bVerbose){
+					System.out.println("Revisamos que no haya datos null en la tabla <"+nombreTabla+">");
+					System.out.println("Revisamos que no se repita en la tabla <"+nombreTabla+">");
+				}
 				archivoXMLTabla = new XMLFile(nombreTabla, pathBase+"\\"+nombreBD);
 				ArrayList<String> idCol = new ArrayList<String>();
 				idCol.add(nombreCol);
@@ -587,9 +720,12 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				}
 			}
 		}
+		nombreTabla = tempNombreTabla;
 		
-		
-		
+		// Verbose
+		if (bVerbose){
+			System.out.println("Se agrega la foreign key <"+nombreC+">");
+		}
 		// Los agregamos al constraints
 		archivoXML.agregarConstraint(nombreTabla, "foreignKey", nombreC, colIds, referencias);		
 		return "";
@@ -600,16 +736,26 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		if (visit(ctx.exp()).equals("_error_")){			
 			return "__error__";
 		}		
+		
 		int a = ctx.start.getStartIndex();
 	    int b = ctx.stop.getStopIndex();
 	    Interval interval = new Interval(a,b);	
 		String stringCheck = ctx.start.getInputStream().getText(interval);
 		String nombre = ctx.ID().getText();
+		// Verbose
+		if (bVerbose){
+			System.out.println("Se revisa que no exista la constraint <"+nombre+">");
+		}
 		if (listaConstraints.contains(nombre)){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Ya existe la constraint <"+nombre+">");
 			return "_error_";
 		}else{
 			listaConstraints.add(nombre);
+		}
+		// Verbose
+		if (bVerbose){			
+			System.out.println("Se guarda el string del check en la metadata");	
+			System.out.println("Se agrega el check <"+nombre+">");
 		}
 		archivoXML.agregarConstraint(nombreTabla, "check", nombre, stringCheck);
 		
@@ -1001,6 +1147,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 	
 	public String visitRenameTB(SQLParser.RenameTBContext ctx){
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que ya se haya elegido base de datos");
+		}
 		// Ya se eligio la base de datos
 		if(nombreBD.equals("")){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
@@ -1010,11 +1160,21 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			String idTabla = ctx.ID(0).getText();
 			String nuevoNombre = ctx.ID(1).getText();
 			String pathCarpeta = pathBase+"\\"+nombreBD;
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se revisa que exista la tabla <"+idTabla+">");
+			}
 			// Revisamos que exista la tabla
 			File f = new File(pathCarpeta+"\\"+idTabla+".XML");
 			if (! f.exists()){
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+idTabla+">");
 				return "_error_";
+			}
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se cambia el nombre del archivo de la tabla <"+idTabla+">");
+				System.out.println("Se cambia el nombre en la metadata de la base de datos <"+nombreBD+">");
+				System.out.println("Se cambia el nombre el nombre en las constraints que tenian referencia a esta tabla");
 			}
 			// Cambiamos el nombre del archivo de la tabla
 			archivoXML = new XMLFile(idTabla, pathCarpeta);
@@ -1029,23 +1189,40 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 	
 	public String visitDropTB(SQLParser.DropTBContext ctx){
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que ya se haya elegido base de datos");
+		}
 		if(nombreBD.equals("")){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
 			return "_error_";
 		}
 		nombreTabla = ctx.ID().getText();
 		String pathCarpeta = pathBase+"\\"+nombreBD;
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que exista la tabla <"+nombreTabla+">");
+		}
 		// Revisamos que exista la tabla
 		File tempF = new File(pathCarpeta+"\\"+nombreTabla+".XML");
 		if (! tempF.exists()){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "No existe la tabla <"+nombreTabla+">");
 			return "_error_";
 		}		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que la tabla <"+nombreTabla+"> no se mencione en alguna foreign key");
+		}
 		// Revisamos que no se menciona en alguna fk
 		archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
 		if (archivoXML.revFKRefTB(nombreTabla)){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Se hace referencia de <"+nombreTabla+"> en alguna constraint");
 			return "_error_";
+		}
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se borra la tabla <"+nombreTabla+"> de la metadata");
+			System.out.println("Se borra el archivo de la tabla <"+nombreTabla+">");
 		}
 		// Una vez revisamos que no se haga referencia a esa tabla se borra de la metadata	
 		ArrayList<String> adentrar = new ArrayList<String> ();
@@ -1059,6 +1236,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 	
 	public String visitAlterTB(SQLParser.AlterTBContext ctx){
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que ya se haya elegido una base de datos");
+		}
 		// Ya se eligio base de datos a usar
 		if(nombreBD.equals("")){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
@@ -1067,6 +1248,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			nombreTabla = ctx.ID().getText();
 			String pathCarpeta = pathBase +"\\"+nombreBD;
 			File f = new File(pathCarpeta+"\\"+nombreTabla+".XML");
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se revisa que exista la tabla <"+nombreTabla+">");
+			}
 			// existe la tabla
 			if (! f.exists()){
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "No existe la tabla <"+nombreTabla+">");
@@ -1090,6 +1275,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	
 	public String visitAddColumnTB(SQLParser.AddColumnTBContext ctx){
 		String nombreColumna = ctx.ID().getText();
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que no haya una columna con el mismo nombre");
+		}
 		// Obtenemos todas las columnas de esa tabla
 		tablaCols = archivoXML.listarColumnas(nombreTabla);
 		if (tablaCols.contains(nombreColumna)){
@@ -1104,6 +1293,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		informacion.add(nombreColumna);
 		String tipoActual = visit(ctx.tipo());	
 		tipoDato.add(tipoActual.toLowerCase());
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se agrega la columna <"+ nombreColumna+"> a la tabla <"+nombreTabla+">");
+		}
 		archivoXML.agregarListaColumnas(nombreTabla, informacion, tipoDato);
 		// Visitamos las constraints
 		if (visit(ctx.constraints()).equals("_error_")){
@@ -1113,6 +1306,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 	
 	public String visitAddConstraintTB(SQLParser.AddConstraintTBContext ctx){
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se obtienen las columnas de la tabla <"+nombreTabla+">");
+			System.out.println("Se obtienen las constraints de la tabla <"+nombreTabla+">");
+		}
 		// Obtenemos todas las columnas de esa tabla
 		tablaCols = archivoXML.listarColumnas(nombreTabla);
 		datos.clear();
@@ -1127,14 +1325,26 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	
 	public String visitDropColumnTB(SQLParser.DropColumnTBContext ctx){
 		String nombreColumna = ctx.ID().getText();
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que exista la columna <"+nombreColumna+">");
+		}
 		// Revisamos que exista la columna
 		if (! archivoXML.listarColumnas(nombreTabla).contains(nombreColumna)){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "La columna <"+nombreColumna+"> no existe en la tabla <"+nombreTabla+">");			
 			return "_error_";
 		}
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa si se menciona la columna en alguna constraint");
+		}
 		if (archivoXML.revConstraintCol(nombreTabla, nombreColumna)){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "La columna <"+nombreColumna+"> se usa de referencia en una constraint de la base de datos");			
 			return "_error_";
+		}
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se borra la columna de la metadata");
 		}
 		// Una vez revisamos que no se haga referencia a esa tabla se borra de la metadata	
 		ArrayList<String> adentrar = new ArrayList<String> ();		
@@ -1146,6 +1356,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	
 	public String visitDropConstraintTB(SQLParser.DropConstraintTBContext ctx){
 		String idC = ctx.ID().getText();
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que exista la constraint <"+idC+">");
+		}
 		if (! archivoXML.eliminarConstraint(nombreTabla, idC)){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "La constraint <"+idC+"> no existe en la tabla <"+nombreTabla+">");			
 			return "_error_";
@@ -1161,11 +1375,19 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			String pathCarpeta = pathBase+"\\"+nombreBD;
 			archivoXML = new XMLFile("Metadata."+nombreBD, pathCarpeta);
 			nombreTabla = ctx.ID().getText();
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se revisa que exista la tabla <"+nombreTabla+">");
+			}
 			// Revisamos que exista la tabla
 			File f = new File(pathCarpeta+"\\"+nombreTabla+".XML");
 			if (! f.exists()){
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+nombreTabla+">");
 				return "_error_";
+			}
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se carga la data de la tabla <"+nombreTabla+">");
 			}
 			columnas.clear();
 			data.clear();
@@ -1182,6 +1404,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	}
 	
 	public String visitData(SQLParser.DataContext ctx){		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que ya se haya elegido una base de datos");
+		}
 		// Se revisa que ya se haya elegido una base de datos a utilizar
 		if(ctx.query()== null && nombreBD.equals("")){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No se ha especificado una base de datos a utilizar");
@@ -1194,7 +1420,6 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				}
 			}
 			return "";
-//			return super.visitData(ctx);
 		}
 	}
 	
@@ -1203,6 +1428,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		String pathCarpeta = pathBase+"\\"+nombreBD;
 		
 		// Revisamos que exista la tabla
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que ya exista la tabla <"+nombreTabla+">");
+		}
 		File f = new File(pathCarpeta+"\\"+nombreTabla+".XML");
 		if (! f.exists()){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+nombreTabla+">");
@@ -1222,9 +1451,17 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		
 		if (ctx.ID().size()>1){
 			for (int x=1; x<ctx.ID().size(); x++){
+				// Vebose
+				if (bVerbose){
+					System.out.println("Se revisa que exista la columna <"+ ctx.ID(x).getText()+">");
+				}
 				// Revisamos que exista la columna mencionada
 				if (archivoXML.existeCol(nombreTabla, ctx.ID(x).getText())){
 					// Revisamos que no se repita la columna
+					// Vebose
+					if (bVerbose){
+						System.out.println("Se revisa que no se haya mencionado la columna <"+ ctx.ID(x).getText()+">");
+					}
 					if (columnas.contains(ctx.ID(x).getText())){
 						agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Se menciona dos veces la columna <"+ctx.ID(x).getText()+">");
 						return "_error_";
@@ -1235,10 +1472,18 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 					return "_error_";
 				}				
 			}			
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se colocan los tipos de las columnas");
+			}
 			// Se colocan los tipos de las columnas
 			columnasReales = archivoXML.listarColumnas(nombreTabla);				
 			tiposReales = archivoXML.listarTiposTabla(columnas, nombreTabla);
 		}else{
+			// Vebose
+			if (bVerbose){
+				System.out.println("Se colocan todas las columnas");
+			}
 			// Si no se especifican las columnas se colocan todas las columnas
 			temporal = archivoXML.listarColumnasYTipos(nombreTabla);	
 			columnasReales = archivoXML.listarColumnas(nombreTabla); //TST
@@ -1258,6 +1503,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		insertandoDatos = false;			
 		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa el tipo de la columna se va a agregar <>");
+		}
 		// Comprobar que el tipo de la columna sea el mismo que se va a agregar
 		int x=0;
 		while (x<datosTipos.size() && x<tiposReales.size()){
@@ -1270,10 +1519,18 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 					return "_error_";
 				}
 			}else if(tipoAgregar.equals("float") && tipoReal.equals("int")){
+				// Vebose
+				if (bVerbose){
+					System.out.println("Transformacion automatica de float a int");
+				}
 				// Se puede hacer conversion automatica, float a int
 				datos.set(x, floatAInt(datos.get(x)));
 				datosTipos.set(x, "int");
 			}else if (tipoAgregar.equals("int") && tipoReal.equals("float")){
+				// Vebose
+				if (bVerbose){
+					System.out.println("Transformacion automatica de int a float");
+				}
 				// Conversion automatica de int a float
 				datos.set(x, intAFloat(datos.get(x)));
 				datosTipos.set(x, "float");
@@ -1287,6 +1544,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		
 
 		// Revisamos las constraints
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se que la primary key no sea null");
+		}
 		// La primary key no puede ser null
 		ArrayList<ArrayList<String>> metaTabla = getTableMetadata();
 		
@@ -1309,14 +1570,22 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 				tuplaPK.add(datos.get(indiceCol));
 			}
 		}
-
-		//Revisar que el PK sea unico
+		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se que la primary key sea unica");
+		}
+		//Revisar que el PK sea unico		
 		ArrayList<ArrayList<String>> tmpQuery = archivoXMLTabla.queryColumns(idColsPK);
 		if(tuplaPK.size()>0 && tmpQuery.contains(tuplaPK)){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"Las columnas <"+idColsPK.toString()+"> deben tener valores unicos, la llave primaria <"+tuplaPK.toString()+"> ya existe");
 			return "_error_";
 		}
 		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisan que el insert no haga conflicto con las llaves foraneas");
+		}
 		//Revisar llaves foraneas  (0,3,4 en metaTabla)
 		ArrayList<String> idColsFK = new ArrayList<String>();
 		for(int i=0;i<columnasReales.size();i++){
@@ -1346,6 +1615,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 		}
 		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que el insert no tenga conflicto con el check");
+		}
 		//CHECK 0,5,6 en metaTabla
 		ArrayList<String> checkExpressions = new ArrayList<String>();
 		
@@ -1404,6 +1677,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		evaluandoExp=false;
 		
 		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se le suma a la cantidad de registros");
+		}
 		// Le sumamos uno a la cantidad de registros
 		ArrayList<String> adentrar = new ArrayList<String>();
 		adentrar.add("tabla");
@@ -1421,7 +1698,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 	public String visitUpdate(SQLParser.UpdateContext ctx){
 		nombreTabla = ctx.ID().getText();
 		String pathCarpeta = pathBase+"\\"+nombreBD;
-		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que ya exista la tabla <"+nombreTabla+">");
+		}
 		File f = new File(pathCarpeta+"\\"+nombreTabla+".XML");
 		if (! f.exists()){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+nombreTabla+">");
@@ -1436,6 +1716,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		datos = new ArrayList<String>();
 		datosTipos =new ArrayList<String>();
 		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que las columnas sean de la tabla");
+			System.out.println("Se revisa que las columnas no se repitan");
+		}
 		insertandoDatos = true;
 		for(int i = 0; i<ctx.asignacion().size(); i++){
 			if(!columnasTabla.contains(ctx.asignacion().get(i).ID().getText())){
@@ -1458,6 +1743,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		ArrayList<String> tiposReales = archivoXML.listarTiposTabla(columnasAsignacion, nombreTabla);
 		
 		// Comprobar que el tipo de la columna sea el mismo que se va a agregar
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se comprueba que el tipo que se va a agregar sea el mismo que el de la columna");
+		}
 		int x=0;
 		while (x<datosTipos.size() && x<tiposReales.size()){
 			String tipoAgregar = datosTipos.get(x);
@@ -1486,6 +1775,11 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		
 		
 		// Revisamos las constraints
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se revisa que la primary key no sea null");
+			System.out.println("Se revisa que la primary key sea unica");
+		}
 		// La primary key no puede ser null
 		ArrayList<ArrayList<String>> metaTabla = getTableMetadata();
 		if (!archivoXMLTabla.getNombre().equals(nombreTabla)){
@@ -1516,6 +1810,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			return "_error_";
 		}
 		
+		if (bVerbose){
+			System.out.println("Se revisa que la foreign key no sea null");
+			System.out.println("Se revisa que la foreign key sea unica");
+		}
 		//Revisar llaves foraneas  (0,3,4 en metaTabla)
 		for(int i=0;i<columnasAsignacion.size();i++){
 			for(int j=0;j<metaTabla.size();j++){
@@ -1540,6 +1838,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			}
 		}
 		
+		if (bVerbose){
+			System.out.println("Se revisa que la informacion cumpla con el check");
+		}
 		//CHECK 0,5,6 en metaTabla
 		ArrayList<String> checkExpressions = new ArrayList<String>();
 		
@@ -1775,6 +2076,9 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		nombreTabla = ctx.ID().getText();
 		String pathCarpeta = pathBase+"\\"+nombreBD;
 		
+		if (bVerbose){
+			System.out.println("Se que exista la tabla <"+nombreTabla+">");
+		}
 		File f = new File(pathCarpeta+"\\"+nombreTabla+".XML");
 		if (! f.exists()){
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la tabla <"+nombreTabla+">");
@@ -1792,6 +2096,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		ArrayList<String> columnasTabla = archivoXML.listarColumnas(nombreTabla);
 		ArrayList<String> tablas = archivoXML.showTables();
 		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se hacen revisiones respecto a llaves foraneas");
+		}
 //		//Revisar llaves foraneas  (que no sea FK de otra tabla) 4?
 		//El primer item de cada de cada tupla colsRef es el nombre de la tabla que le hace referencia y el resto de items son las columnas que se necesitan de esa tabla
 		//Sobre colsRef se hara la consulta en cada tabla para saber si el item a borrar es referenciado.
