@@ -1283,6 +1283,13 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		ArrayList<String> adentrar = new ArrayList<String> ();
 		adentrar.add("tabla");
 		archivoXML.eliminarNodo(adentrar, "nombreTabla", nombreTabla);
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se resta a la cantidad de tablas de la base de datos");
+		}
+		ArrayList<String> adentrar2 = new ArrayList<String>();
+		adentrar2.add("tabla");
+		archivoXML.restarAtributo(adentrar2, "nombreTabla", nombreTabla, "cantidadRegistros", 1);		
 		// Se borra el archivo de la tabla
 		if (tempF.exists()){
 			tempF.delete();
