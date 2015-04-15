@@ -1,1 +1,1 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><empleado><tupla><id>1</id><nombre>'Julio'</nombre></tupla><tupla><id>2</id><nombre>'UnoMas'</nombre></tupla><tupla><id>3</id><nombre>'Alguien'</nombre></tupla></empleado>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><empleado><tupla><id>1</id><nombre>'Julio'</nombre></tupla><tupla><id>2</id><nombre>'UnoMas'</nombre></tupla><tupla><id>3</id><nombre>'Alguien'</nombre></tupla><tupla><id>11</id><nombre>null</nombre></tupla></empleado>

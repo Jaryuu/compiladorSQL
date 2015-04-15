@@ -1,3 +1,11 @@
+/* Universidad del Valle de Guatemala
+ Abril de 2015
+ Julio Ayala - 12362
+ Ricardo Zepeda - 12311
+ Bases de datos
+ NuevoComparator.java es una implementacion de Comparator para hacer el order by 
+*/
+
 import java.util.ArrayList;
 import java.util.Comparator;
 

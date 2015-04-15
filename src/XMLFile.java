@@ -1,3 +1,11 @@
+/* Universidad del Valle de Guatemala
+ Abril de 2015
+ Julio Ayala - 12362
+ Ricardo Zepeda - 12311
+ Bases de datos
+ XMLFile.java es donde se crean y consultan los archivos xml 
+*/
+
 import java.io.File;
 import java.util.ArrayList;
 
@@ -399,6 +407,7 @@ public class XMLFile {
 		return existe;
 	}
 	
+	//Devuelve el tipo de una columna
 	public String tipoCol(String nombreTabla, String nombreCol){
 		String tipo="None";
 		NodeList list = rootElement.getElementsByTagName("tabla");
@@ -487,6 +496,7 @@ public class XMLFile {
 		}
 	}
 	
+	//revFKRefTB
 	public boolean revFKRefTB(String nombreTabla){
 		ArrayList<String> adentrar = new ArrayList<String>();
 		adentrar.add("tabla");
@@ -508,6 +518,7 @@ public class XMLFile {
 		return false;
 	}
 	
+	//Revisa si la constraint esta en una tabla
 	public boolean revConstraintCol(String nombreTabla, String nombreCol){
 		NodeList listaNodos = rootElement.getElementsByTagName("tabla");
 		for (int x=0; x<listaNodos.getLength(); x++){
@@ -618,7 +629,8 @@ public class XMLFile {
 		}
 		return columnas;
 	}
-
+	
+	//Lista los constraints de una tabla, dado el tipo de constraint
 	public ArrayList<ArrayList<String>> listarConstraintsEspecificosTabla(String nombreTabla, String tipoConstraint){
 		ArrayList<ArrayList<String>> lista = new ArrayList<ArrayList<String>>();
 		ArrayList<String> nombreConstraint = new ArrayList<String>();
@@ -696,6 +708,7 @@ public class XMLFile {
 		return lista;
 	}
 	
+	//Lista las columnas y su tipo
 	public ArrayList<ArrayList<String>> listarColumnasYTipos(String tabla){
 		ArrayList<ArrayList<String>> columnasTipo = new ArrayList<ArrayList<String>>();
 		ArrayList<String> columnas = new ArrayList<String>();
@@ -727,6 +740,7 @@ public class XMLFile {
 		return columnasTipo;
 	}
 	
+	//Devuelve los tipos de la tabla
 	public ArrayList<String> listarTiposTabla (ArrayList<String> nombreColumnas, String tabla){
 		ArrayList<String> tipos = new ArrayList<String>();
 		ArrayList<ArrayList<String>> temp = listarColumnasYTipos(tabla);
@@ -737,6 +751,7 @@ public class XMLFile {
 		return tipos;
 	}
 	
+	//Devuelve una lista de todos los constraints de la tabla
 	public ArrayList<String> listarConstraintsTabla(String nombreTabla){
 		ArrayList<String> lista = new ArrayList<String>();
 		NodeList listaNodos = rootElement.getElementsByTagName("tabla");
@@ -878,6 +893,7 @@ public class XMLFile {
 		return false;
 	}
 	
+	//Cuenta la cantidad de registros en una tabla
 	public int countRegistros(String nombreTabla){
 		int count=0;
 		NodeList listaNodos = rootElement.getElementsByTagName("tabla");
@@ -893,6 +909,8 @@ public class XMLFile {
 		return count;
 	}
 	
+	
+	//Aumenta en 1 un atributo (numero de tablas, registros etc)
 	public void sumar1Atributo (ArrayList<String> adentrar, String nombreNombrar, String nombre, String atributoMas1){
 		ArrayList<NodeList> listasNodos = lookupNodeList(null,adentrar, 0);
 		for (int x=0; x<listasNodos.size(); x++){
@@ -913,7 +931,7 @@ public class XMLFile {
 		}
 	}
 	
-	//Porque no tengo ganas de modificar el de sumar jajaja
+	//Resta i atributos de un xml
 	public void restarAtributo (ArrayList<String> adentrar, String nombreNombrar, String nombre, String atributoMas1,int cantidadFilas){
 		ArrayList<NodeList> listasNodos = lookupNodeList(null,adentrar, 0);
 		for (int x=0; x<listasNodos.size(); x++){
@@ -934,6 +952,7 @@ public class XMLFile {
 		}
 	}
 	
+	//Cambia el nombre del archivo
 	public void cambiarNombre(String nuevo){
 		NodeList nodes = doc.getElementsByTagName(nombre);
 		for (int i = 0; i < nodes.getLength(); i++) {
@@ -944,6 +963,7 @@ public class XMLFile {
 		archivo.renameTo(new File(pathReal));
 	}
 	
+	//Devuelve una lista de las bases de datos existentes.
 	public ArrayList<String> showDatabases(){
 		NodeList list = rootElement.getElementsByTagName("BaseDeDatos");
 		ArrayList<String> databases = new ArrayList<String>();
@@ -957,6 +977,7 @@ public class XMLFile {
 		return databases;
 	}
 	
+	//Devuelve una lista de las tablas de una base de datos.
 	public ArrayList<String> showTables(){
 		NodeList list = rootElement.getElementsByTagName("tabla");
 		ArrayList<String> tablas = new ArrayList<String>();
@@ -971,6 +992,8 @@ public class XMLFile {
 		return tablas;
 	}
 	
+	
+	//Sirve para hacer queries de ciertas columnas 
 	public ArrayList<ArrayList<String>> queryColumns(ArrayList<String> columns){
 		ArrayList<ArrayList<String>> query = new ArrayList<ArrayList<String>>();
 		NodeList list = rootElement.getElementsByTagName("tupla");
@@ -988,6 +1011,8 @@ public class XMLFile {
 		return query;
 	}
 	
+	
+	//Usado para actualizar una tupla en una tabla
 	public void updateTupla(ArrayList<String> columnas, ArrayList<String> viejo, ArrayList<String> nuevo){
 		NodeList nodes = doc.getElementsByTagName("tupla");
 		for (int j = 0; j < nodes.getLength(); j++) {
@@ -1016,6 +1041,7 @@ public class XMLFile {
 		createFile();
 	}
 	
+	//Borra tuplas
 	public void deleteTupla(ArrayList<String> columnas, ArrayList<String> tupla){
 		NodeList nodes = doc.getElementsByTagName("tupla");
 		for (int j = 0; j < nodes.getLength(); j++) {

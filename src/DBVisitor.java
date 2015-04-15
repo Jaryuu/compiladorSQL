@@ -1,10 +1,15 @@
-//import java.io.BufferedReader;
-//import java.io.File;
-//import java.io.FileReader;
-//import java.io.IOException;
+/* Universidad del Valle de Guatemala
+ Abril de 2015
+ Julio Ayala - 12362
+ Ricardo Zepeda - 12311
+ Bases de datos
+ DBVisitor.java es donde se visita el arbol sintactico y se ejecutan las acciones semanticas al visitar cada nodo. 
+*/
+
+
+
 import java.io.*;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.xml.soap.Node;
@@ -371,7 +376,6 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 					datos.add(eElement.getElementsByTagName("nombreTabla").item(0).getTextContent());
 					datos.add(eElement.getElementsByTagName("cantidadRegistros").item(0).getTextContent());
 					
-					//Por que no solo agregar datos a data? because f u that's why (y porque data se vacia)
 					ArrayList<String> datosCopia = new ArrayList<String>();
 					for (int j=0;j<datos.size();j++){
 						datosCopia.add(datos.get(j));
@@ -599,6 +603,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		ArrayList<String> referencias = new ArrayList<String>();
 		String idTablaRef = ctx.references().ID(0).getText();
+		
 		// Vebose
 		if (bVerbose){
 			System.out.println("Se revisa que exista la tabla <"+idTablaRef+"> en la base de datos en uso");
@@ -615,12 +620,20 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			return "_error_";
 		}
 		
+		ArrayList<String> listaPks = archivoXML.listaColsPK(idTablaRef);
 		for (int y=1; y<ctx.references().ID().size();y++){
 			String idAct = ctx.references().ID(y).getText();
+			
 			// Vebose
 			if (bVerbose){
 				System.out.println("Se revisa que exista la columna <"+idAct+"> en la tabla <"+idTablaRef+">");
 			}
+			
+			if(!listaPks.contains(idAct)){
+				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"La columna <"+idAct+"> en tabla <"+idTablaRef+"> no es Primary Key");
+				return "_error_";
+			}
+			
 			if (! archivoXML.existeCol(idTablaRef, idAct)){
 				// Que exista la columna
 				agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la columna <"+idAct+"> en tabla <"+idTablaRef+">");
@@ -1591,7 +1604,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		// Revisamos las constraints
 		// Vebose
 		if (bVerbose){
-			System.out.println("Se que la primary key no sea null");
+			System.out.println("Se revisa que la primary key no sea null");
 		}
 		// La primary key no puede ser null
 		ArrayList<ArrayList<String>> metaTabla = getTableMetadata();
@@ -1618,7 +1631,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		
 		// Vebose
 		if (bVerbose){
-			System.out.println("Se que la primary key sea unica");
+			System.out.println("Se revisa que la primary key sea unica");
 		}
 		//Revisar que el PK sea unico		
 		ArrayList<ArrayList<String>> tmpQuery = archivoXMLTabla.queryColumns(idColsPK);
@@ -2168,7 +2181,7 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		String pathCarpeta = pathBase+"\\"+nombreBD;
 		
 		if (bVerbose){
-			System.out.println("Se que exista la tabla <"+nombreTabla+">");
+			System.out.println("Se revisa que exista la tabla <"+nombreTabla+">");
 		}
 		File f = new File(pathCarpeta+"\\"+nombreTabla+".XML");
 		if (! f.exists()){

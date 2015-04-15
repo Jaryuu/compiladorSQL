@@ -1,3 +1,11 @@
+/* Universidad del Valle de Guatemala
+ Abril de 2015
+ Julio Ayala - 12362
+ Ricardo Zepeda - 12311
+ Bases de datos
+ GUI.java es la interfaz grafica del programa 
+*/
+
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
