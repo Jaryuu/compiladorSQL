@@ -252,13 +252,24 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		String borrarBD = ctx.ID().getText();
 		File folder = new File(pathBase+"\\"+borrarBD);
 		// Vebose
+		
+		
 		if (bVerbose){
 			System.out.println("Se revisa exista la carpeta de la base de datos <"+borrarBD+">");
 		}
 		if (folder.exists()){
+			archivoXML = new XMLFile("Metadata."+borrarBD, pathBase+"\\"+borrarBD);
+			ArrayList<String> tablas = archivoXML.showTables();
+			
+			int registros = 0;
+			for(int i=0;i<tablas.size();i++){
+				registros+=archivoXML.countRegistros(tablas.get(i));
+			}
+			
+			
 			// Preguntar si esta seguro
 			int dialogButton = JOptionPane.YES_NO_OPTION;
-			int dialogResult = JOptionPane.showConfirmDialog (null, "Borrar base de datos <"+borrarBD+"> con registros","Warning",dialogButton);
+			int dialogResult = JOptionPane.showConfirmDialog (null, "Borrar base de datos <"+borrarBD+"> con "+registros+ " registros","Warning",dialogButton);
 			if (dialogResult == JOptionPane.YES_OPTION){
 				// Vebose
 				if (bVerbose){
