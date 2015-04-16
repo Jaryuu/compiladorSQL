@@ -12,6 +12,7 @@ import java.io.*;
 import java.text.ParseException;
 import java.util.*;
 
+import javax.swing.JOptionPane;
 import javax.xml.soap.Node;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -255,12 +256,18 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 			System.out.println("Se revisa exista la carpeta de la base de datos <"+borrarBD+">");
 		}
 		if (folder.exists()){
-			// Vebose
-			if (bVerbose){
-				System.out.println("Se borra todos los archivos de la base de datos <"+borrarBD+">");
-			}
-			deleteFolder(folder);
-			borrarBD(borrarBD);
+			// Preguntar si esta seguro
+			int dialogButton = JOptionPane.YES_NO_OPTION;
+			int dialogResult = JOptionPane.showConfirmDialog (null, "Borrar base de datos <"+borrarBD+"> con registros","Warning",dialogButton);
+			if (dialogResult == JOptionPane.YES_OPTION){
+				// Vebose
+				if (bVerbose){
+					System.out.println("Se borra todos los archivos de la base de datos <"+borrarBD+">");
+				}
+				deleteFolder(folder);
+				borrarBD(borrarBD);
+			}			
+			
 		}else{		
 			agregarMensaje(ctx.start.getLine(), ctx.start.getCharPositionInLine(),"No existe la base de datos <"+borrarBD+">");
 			return "_error_";
@@ -1278,19 +1285,21 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		if (bVerbose){
 			System.out.println("Se borra la tabla <"+nombreTabla+"> de la metadata");
 			System.out.println("Se borra el archivo de la tabla <"+nombreTabla+">");
-		}
+		}		
+		// Vebose
+		if (bVerbose){
+			System.out.println("Se resta a la cantidad de tablas de la base de datos");
+		}		
+		// Se borra el archivo de la tabla
 		// Una vez revisamos que no se haga referencia a esa tabla se borra de la metadata	
 		ArrayList<String> adentrar = new ArrayList<String> ();
 		adentrar.add("tabla");
 		archivoXML.eliminarNodo(adentrar, "nombreTabla", nombreTabla);
-		// Vebose
-		if (bVerbose){
-			System.out.println("Se resta a la cantidad de tablas de la base de datos");
-		}
+		// Despues de eliminar nodo, se resta la cantidad de tablas
+		archivoXML = new XMLFile("MetadataBaseDeDatos", pathBase);
 		ArrayList<String> adentrar2 = new ArrayList<String>();
-		adentrar2.add("tabla");
-		archivoXML.restarAtributo(adentrar2, "nombreTabla", nombreTabla, "cantidadRegistros", 1);		
-		// Se borra el archivo de la tabla
+		adentrar2.add("BaseDeDatos");
+		archivoXML.restarAtributo(adentrar2, "nombre", nombreBD, "cantidadTablas", 1);	
 		if (tempF.exists()){
 			tempF.delete();
 		}		
