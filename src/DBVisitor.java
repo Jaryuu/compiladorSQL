@@ -773,10 +773,10 @@ public class DBVisitor extends SQLBaseVisitor<String>{
 		}
 		
 		
-		int a = ctx.start.getStartIndex();
-	    int b = ctx.stop.getStopIndex();
+		int a = ctx.exp().start.getStartIndex();
+	    int b = ctx.exp().stop.getStopIndex();
 	    Interval interval = new Interval(a,b);	
-		String stringCheck = ctx.start.getInputStream().getText(interval);
+		String stringCheck = ctx.exp().start.getInputStream().getText(interval);
 		String nombre = ctx.ID().getText();
 		// Verbose
 		if (bVerbose){
